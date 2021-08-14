@@ -28,7 +28,13 @@ project "Neptune"
 	files
 	{
 		"src/**.cpp",
-		"src/**.h"
+		"src/**.h",
+		"include/**.h"
+	}
+
+	includedirs
+	{
+		"src"
 	}
 
 	filter "system:macosx"
@@ -53,7 +59,7 @@ project "Neptune"
 project "Sandbox"
 	kind "ConsoleApp"
 	
-	debugdir "."
+	debugdir "./"
 
 	targetdir ("build/bin/neptune-" .. string.lower("%{cfg.system}") .. "/%{cfg.shortname}/")
         objdir ("build/bin-obj/neptune-" .. string.lower("%{cfg.system}") .. "/%{cfg.shortname}/")
@@ -67,6 +73,16 @@ project "Sandbox"
 	links
 	{
 		"Neptune"
+	}
+	
+	includedirs
+	{
+		"src"
+	}
+
+	sysincludedirs
+	{
+		"include"
 	}
 
 	filter "system:macosx"
