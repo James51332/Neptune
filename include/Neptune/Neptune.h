@@ -5,3 +5,8 @@
 
 // ----- Core Engine ----------
 #include "core/Application.h"
+
+// ----- Utilities ------------
+#include "utils/Utils.h"
+#include "utils/Types.h"
+#include "utils/DynamicArray.h"

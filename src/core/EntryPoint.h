@@ -1,13 +1,15 @@
 #pragma once
 
-#ifdef NEPTUNE_MACOS
-
-#include "Application.h"
+#include "core/Application.h"
 
 namespace Neptune
 {
-  extern Application* CreateApplication();
+extern Application* CreateApplication();
 }
+
+#ifdef NEPTUNE_ENTRYPOINT
+
+#ifdef NEPTUNE_MACOS
 
 int main()
 {
@@ -19,3 +21,5 @@ int main()
 }
 
 #endif // NEPTUNE_MACOS
+
+#endif // NEPTUNE_ENTRYPOINT

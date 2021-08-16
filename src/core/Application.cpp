@@ -1,5 +1,8 @@
 #include "Application.h"
 
+#define NEPTUNE_ENTRYPOINT
+#include "EntryPoint.h"
+
 namespace Neptune
 {
 
@@ -15,7 +18,7 @@ Application::~Application()
 
 void Application::Run()
 {
-  while (true);
+  //while (true);
 }
 
 } // namespace Neptune

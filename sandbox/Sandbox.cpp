@@ -1,11 +1,11 @@
 #include <Neptune/Neptune.h>
 
+
 class SandboxApp : public Neptune::Application
 {
 public:
   SandboxApp()
   {
-    
   }
   
   ~SandboxApp()
