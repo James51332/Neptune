@@ -21,7 +21,7 @@ public:
 public:
   
   DynamicArray() noexcept;
-  DynamicArray(UInt32 size);
+  DynamicArray(Neptune::Size size);
   DynamicArray(const DynamicArray& other);
   DynamicArray(DynamicArray&& other) noexcept;
   
@@ -30,23 +30,23 @@ public:
   
   ~DynamicArray() noexcept;
   
-  T& operator[](UInt32 index) noexcept
+  T& operator[](Neptune::Size index) noexcept
   {
     return m_Array[index];
   }
   
-  const T& operator[](UInt32 index) const noexcept
+  const T& operator[](Neptune::Size index) const noexcept
   {
     return m_Array[index];
   }
   
   bool Empty() const noexcept;
-  UInt32 Size() const noexcept;
-  UInt32 Capacity() const noexcept;
+  Neptune::Size Size() const noexcept;
+  Neptune::Size Capacity() const noexcept;
   void Clear() noexcept;
   
-  void Reserve(UInt32 size);
-  void Shrink(UInt32 size) noexcept;
+  void Reserve(Neptune::Size size);
+  void Shrink(Neptune::Size size) noexcept;
   
   void PushBack(const T& val);
   void PushBack(T&& val);
@@ -57,11 +57,11 @@ public:
   void PopBack() noexcept;
   
 private:
-  UInt32 NextSize() const noexcept;
+  Neptune::Size NextSize() const noexcept;
   
 private:
-  UInt32 m_Size;
-  UInt32 m_Capacity;
+  Neptune::Size m_Size;
+  Neptune::Size m_Capacity;
   T* m_Array;
 };
 
@@ -72,7 +72,7 @@ DynamicArray<T>::DynamicArray() noexcept
 }
 
 template <typename T>
-DynamicArray<T>::DynamicArray(UInt32 size)
+DynamicArray<T>::DynamicArray(Neptune::Size size)
 : m_Size(0), m_Capacity(size), m_Array(nullptr)
 {
   NEPTUNE_ASSERT(size >= 0, "Cannot create DynamicArray with negative size!");
@@ -85,8 +85,16 @@ DynamicArray<T>::DynamicArray(const DynamicArray<T>& other)
 {
   m_Array = (T*) ::operator new(m_Capacity * sizeof(T));
   
-  for (int i = 0; i < m_Size; i++)
-    m_Array[i] = Move(other[i]);
+  for (Neptune::Size i = 0; i < m_Size; i++)
+  {
+    try
+    {
+      ::new(&m_Array[i]) T(other[i]);
+    } catch (...)
+    {
+      throw;
+    }
+  }
 }
 
 template <typename T>
@@ -122,17 +130,17 @@ DynamicArray<T>::~DynamicArray() noexcept
 template <typename T>
 bool DynamicArray<T>::Empty() const noexcept
 {
-  return m_Size = 0;
+  return m_Size == 0;
 }
 
 template <typename T>
-UInt32 DynamicArray<T>::Size() const noexcept
+Neptune::Size DynamicArray<T>::Size() const noexcept
 {
   return m_Size;
 }
 
 template <typename T>
-UInt32 DynamicArray<T>::Capacity() const noexcept
+Neptune::Size DynamicArray<T>::Capacity() const noexcept
 {
   return m_Capacity;
 }
@@ -140,8 +148,11 @@ UInt32 DynamicArray<T>::Capacity() const noexcept
 template <typename T>
 void DynamicArray<T>::Clear() noexcept
 {
-  for (int i = 0; i < m_Size; i++)
-    m_Array[i].~T();
+  if (m_Capacity <= 0)
+    return;
+  
+  for (Neptune::Size i = m_Size; i > 0; i--)
+    	m_Array[i - 1].~T();
   
   ::operator delete(m_Array, m_Capacity * sizeof(T));
   m_Capacity = 0;
@@ -149,17 +160,29 @@ void DynamicArray<T>::Clear() noexcept
 }
 
 template <typename T>
-void DynamicArray<T>::Reserve(UInt32 size)
+void DynamicArray<T>::Reserve(Neptune::Size size)
 {
   if (size <= m_Capacity)
     return;
   
   T* tmp = (T*) ::operator new(size * sizeof(T));
   
-  for (int i = 0; i < m_Size; i++)
-    new (&tmp[i]) T(MoveIfNoexcept(m_Array[i]));
+  for (Neptune::Size i = 0; i < m_Size; i++)
+  {
+    try
+    {
+    	new (&tmp[i]) T(MoveIfNoexcept(m_Array[i]));
+    } catch (...)
+    {
+      for (Neptune::Size j = 0; j < i; j++)
+        tmp[j].~T();
+      ::operator delete(tmp, size * sizeof(T));
+      
+      throw;
+    }
+  }
   
-  for (int i = 0; i < m_Size; i++)
+  for (Neptune::Size i = 0; i < m_Size; i++)
     m_Array[i].~T();
   
   ::operator delete(m_Array, m_Capacity * sizeof(T));
@@ -169,12 +192,12 @@ void DynamicArray<T>::Reserve(UInt32 size)
 }
 
 template <typename T>
-void DynamicArray<T>::Shrink(UInt32 size) noexcept
+void DynamicArray<T>::Shrink(Neptune::Size size) noexcept
 {
   if (size >= m_Size)
     return;
   
-  for (int i = size; i < m_Size; i++)
+  for (Neptune::Size i = size; i < m_Size; i++)
     m_Array[i].~T();
   
   m_Size = size;
@@ -219,9 +242,9 @@ void DynamicArray<T>::PopBack() noexcept
 }
 
 template <typename T>
-UInt32 DynamicArray<T>::NextSize() const noexcept
+Neptune::Size DynamicArray<T>::NextSize() const noexcept
 {
-  return m_Size > 0 ? (m_Size + m_Size) : 8;
+  return m_Size > 0 ? (m_Size + m_Size) : 1;
 }
 
 } // namespace Neptune

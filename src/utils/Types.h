@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 // ----- Integers -------------
 
 using Int8 = char;
@@ -16,4 +18,11 @@ using UInt64 = unsigned long long;
 
 using Float32 = float;
 using Float64 = double;
+
+// ----- Size -----------------
+
+namespace Neptune
+{
+using Size = ::std::size_t;
+} // namespace Neptune
 

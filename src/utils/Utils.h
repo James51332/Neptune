@@ -1,8 +1,6 @@
 #pragma once
 
-#include <iostream>
-#include <utility>
-#include <type_traits>
+#include <iostream> // For NEPTUNE_ASSERT (Temporary)
 
 namespace Neptune
 {
@@ -71,6 +69,12 @@ struct ConstructableHelper <Helper::Void<decltype(new T(DeclVal<Args>()...))>, T
 template <typename T, typename... Args>
 using Constructable = Helper::ConstructableHelper<Helper::Void<>, T, Args...>;
 
+template <typename T>
+struct CopyConstructable { static constexpr bool Value = Constructable<T, const T&>::Value; };
+
+template <typename T>
+struct MoveConstructable { static constexpr bool Value = Constructable<T, T&&>::Value; };
+
 template <typename T, typename... Args>
 struct NoThrowConstructable { static constexpr bool Value = Constructable<T, Args...>::Value && noexcept(T(DeclVal<Args>()...)); };
 
@@ -78,10 +82,10 @@ template <typename T, typename Args>
 struct NoThrowConstructable <T, Args> { static constexpr bool Value = Constructable<T, Args>::Value && noexcept(T(DeclVal<Args>())); };
 
 template <typename T>
-struct NoThrowMoveConstructable
-{
-  static const bool Value = NoThrowConstructable<T, T&&>::Value;
-};
+struct NoThrowCopyConstructable { static constexpr bool Value = NoThrowConstructable<T, const T&>::Value; };
+
+template <typename T>
+struct NoThrowMoveConstructable { static constexpr bool Value = NoThrowConstructable<T, T&&>::Value; };
 
 // ----- Move -----------------
 
@@ -92,7 +96,7 @@ inline typename RemoveReference<T>::Value&& Move(T&& val) noexcept
 }
 
 template <typename T>
-inline typename Neptune::Conditional<NoThrowMoveConstructable<T>::Value, typename RemoveReference<T>::Value&&, const T&>::Value MoveIfNoexcept(T& val)
+inline typename Conditional<NoThrowMoveConstructable<T>::Value || !CopyConstructable<T>::Value, typename RemoveReference<T>::Value&&, const T&>::Value MoveIfNoexcept(T& val) noexcept
 {
   return Move(val);
 }
