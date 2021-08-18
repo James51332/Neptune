@@ -106,7 +106,7 @@ T* Scope<T>::Raw() noexcept
 template <typename T, typename... Args>
 Scope<T> CreateScope(Args&&... args)
 {
-  return Scope<T>(new T(args...));
+  return Scope<T>(new T(Forward<Args>(args)...));
 }
 
 // ----- Ref ------------------
@@ -238,7 +238,7 @@ T* Ref<T>::Raw() noexcept
 template <typename T, typename... Args>
 Ref<T> CreateRef(Args&&... args)
 {
-  return Ref<T>(new T(args...));
+  return Ref<T>(new T(Forward<Args>(args)...));
 }
 
 } // namespace Neptune

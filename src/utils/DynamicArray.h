@@ -239,7 +239,7 @@ void DynamicArray<T>::EmplaceBack(Args&&... args)
   if (m_Size == m_Capacity)
     Reserve(NextSize());
   
-  new (&m_Array[m_Size]) T(args...);
+  new (&m_Array[m_Size]) T(Forward<Args>(args)...);
   m_Size++;
 }
 

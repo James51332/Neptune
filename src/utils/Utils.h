@@ -90,13 +90,27 @@ struct NoThrowMoveConstructable { static constexpr bool Value = NoThrowConstruct
 // ----- Move -----------------
 
 template <typename T>
-inline typename RemoveReference<T>::Value&& Move(T&& val) noexcept
+constexpr typename RemoveReference<T>::Value&& Move(T&& val) noexcept
 {
   return static_cast<typename RemoveReference<T>::Value&&>(val);
 }
 
 template <typename T>
-inline typename Conditional<NoThrowMoveConstructable<T>::Value || !CopyConstructable<T>::Value, typename RemoveReference<T>::Value&&, const T&>::Value MoveIfNoexcept(T& val) noexcept
+constexpr typename Conditional<NoThrowMoveConstructable<T>::Value || !CopyConstructable<T>::Value, typename RemoveReference<T>::Value&&, const T&>::Value MoveIfNoexcept(T& val) noexcept
+{
+  return Move(val);
+}
+
+// ----- Forward --------------
+
+template <typename T>
+constexpr T&& Forward(typename RemoveReference<T>::Value& val) noexcept // T&& deduces to T&
+{
+  return val;
+}
+
+template <typename T>
+constexpr T&& Forward(typename RemoveReference<T>::Value&& val) noexcept // T&& deduces to T&&
 {
   return Move(val);
 }
