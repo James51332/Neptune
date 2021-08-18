@@ -1,6 +1,5 @@
 #include <Neptune/Neptune.h>
 
-
 class SandboxApp : public Neptune::Application
 {
 public:
@@ -10,7 +9,6 @@ public:
   
   ~SandboxApp()
   {
-    
   }
 };
 

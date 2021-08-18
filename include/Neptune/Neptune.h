@@ -10,3 +10,4 @@
 #include "utils/Utils.h"
 #include "utils/Types.h"
 #include "utils/DynamicArray.h"
+#include "utils/SmartPointer.h"

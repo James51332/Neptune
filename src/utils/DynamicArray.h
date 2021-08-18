@@ -114,7 +114,7 @@ DynamicArray<T>::DynamicArray(DynamicArray<T>&& other) noexcept
 }
 
 template <typename T>
-DynamicArray<T>& DynamicArray<T>::operator=(DynamicArray other) noexcept
+DynamicArray<T>& DynamicArray<T>::operator=(DynamicArray<T> other) noexcept
 {
   Swap(m_Size, other.m_Size);
   Swap(m_Capacity, other.m_Capacity);
