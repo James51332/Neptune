@@ -56,6 +56,15 @@ public:
   
   void PopBack() noexcept;
   
+  Iterator begin() noexcept { return m_Array; }
+  Iterator end() noexcept { return m_Array + m_Size; }
+  Iterator rbegin() noexcept { return m_Array + m_Size; }
+  Iterator rend() noexcept { return m_Array; }
+  ConstIterator cbegin() const noexcept { return m_Array; }
+  ConstIterator cend() const noexcept { return m_Array + m_Size; }
+  ConstIterator crbegin() const noexcept { return m_Array + m_Size; }
+  ConstIterator crend() const noexcept { return m_Array; }
+  
 private:
   Neptune::Size NextSize() const noexcept;
   
@@ -152,7 +161,7 @@ void DynamicArray<T>::Clear() noexcept
     return;
   
   for (Neptune::Size i = m_Size; i > 0; i--)
-    	m_Array[i - 1].~T();
+    m_Array[i - 1].~T();
   
   ::operator delete(m_Array, m_Capacity * sizeof(T));
   m_Capacity = 0;
@@ -171,7 +180,7 @@ void DynamicArray<T>::Reserve(Neptune::Size size)
   {
     try
     {
-    	new (&tmp[i]) T(MoveIfNoexcept(m_Array[i]));
+      new (&tmp[i]) T(MoveIfNoexcept(m_Array[i]));
     } catch (...)
     {
       for (Neptune::Size j = 0; j < i; j++)
