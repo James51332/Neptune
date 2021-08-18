@@ -29,15 +29,8 @@ public:
   
   ~DynamicArray() noexcept;
   
-  T& operator[](Neptune::Size index) noexcept
-  {
-    return m_Array[index];
-  }
-  
-  const T& operator[](Neptune::Size index) const noexcept
-  {
-    return m_Array[index];
-  }
+  T& operator[](Neptune::Size index) noexcept;
+  const T& operator[](Neptune::Size index) const noexcept;
   
   bool Empty() const noexcept;
   Neptune::Size Size() const noexcept;
@@ -84,6 +77,8 @@ DynamicArray<T>::DynamicArray(Neptune::Size size)
 : m_Size(0), m_Capacity(size), m_Array(nullptr)
 {
   NEPTUNE_ASSERT(size >= 0, "Cannot create DynamicArray with negative size!");
+  if (size <= 0) return;
+  
   m_Array = (T*) ::operator new(m_Capacity * sizeof(T));
 }
 
@@ -119,12 +114,26 @@ DynamicArray<T>& DynamicArray<T>::operator=(DynamicArray<T> other) noexcept
   Swap(m_Size, other.m_Size);
   Swap(m_Capacity, other.m_Capacity);
   Swap(m_Array, other.m_Array);
+  
+  return (*this);
 }
 
 template <typename T>
 DynamicArray<T>::~DynamicArray() noexcept
 {
   Clear();
+}
+
+template <typename T>
+T& DynamicArray<T>::operator[](Neptune::Size index) noexcept
+{
+  return m_Array[index];
+}
+
+template <typename T>
+const T& DynamicArray<T>::operator[](Neptune::Size index) const noexcept
+{
+  return m_Array[index];
 }
 
 template <typename T>
