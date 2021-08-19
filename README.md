@@ -12,5 +12,5 @@ Neptune is constantly-changing and evolving and the tasks that are next to be de
 * Efficent 3D Renderer
 * Batched 2D Renderer
 * ECS
-* GUI Libar
+* GUI Libary
 * Editor
