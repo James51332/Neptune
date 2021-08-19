@@ -11,3 +11,4 @@
 #include "utils/Types.h"
 #include "utils/DynamicArray.h"
 #include "utils/SmartPointer.h"
+#include "utils/Function.h"

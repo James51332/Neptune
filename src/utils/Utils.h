@@ -1,7 +1,5 @@
 #pragma once
 
-#include <iostream> // For NEPTUNE_ASSERT (Temporary)
-
 namespace Neptune
 {
 

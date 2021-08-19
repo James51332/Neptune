@@ -14,8 +14,7 @@ public:
   using Type = T;
   
 public:
-  Scope() noexcept;
-  Scope(T* pointer) noexcept;
+  Scope(T* pointer = nullptr) noexcept;
   
   Scope(const Scope& other) = delete;
   Scope(Scope&& other) noexcept;
@@ -35,12 +34,6 @@ public:
 private:
   T* m_Pointer;
 };
-
-template <typename T>
-Scope<T>::Scope() noexcept
-: m_Pointer(nullptr)
-{
-}
 
 template <typename T>
 Scope<T>::Scope(T* pointer) noexcept
@@ -140,8 +133,7 @@ public:
   using Type = T;
   
 public:
-  Ref() noexcept;
-  Ref(T* pointer) noexcept;
+  Ref(T* pointer = nullptr) noexcept;
   
   Ref(const Ref& other) noexcept;
   Ref(Ref&& other) = delete; // Move ctor is absolutely useless
@@ -161,12 +153,6 @@ private:
   T* m_Pointer;
   Counter* m_Counter;
 };
-
-template <typename T>
-Ref<T>::Ref() noexcept
-: m_Pointer(nullptr), m_Counter(nullptr)
-{
-}
 
 template <typename T>
 Ref<T>::Ref(T* pointer) noexcept
