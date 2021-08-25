@@ -4,10 +4,10 @@
 
 // ----- Integers -------------
 
-using Int8 = char;
-using Int16 = short;
-using Int32 = int;
-using Int64 = long long;
+using Int8 = signed char;
+using Int16 = signed short;
+using Int32 = signed int;
+using Int64 = signed long long;
 
 using UInt8 = unsigned char;
 using UInt16 = unsigned short;
