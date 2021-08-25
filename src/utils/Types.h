@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstddef>
-
 // ----- Integers -------------
 
 using Int8 = signed char;
@@ -23,6 +21,6 @@ using Float64 = double;
 
 namespace Neptune
 {
-using Size = ::std::size_t;
+using Size = decltype(sizeof(int));
 } // namespace Neptune
 
