@@ -76,9 +76,6 @@ template <typename T>
 DynamicArray<T>::DynamicArray(Neptune::Size size)
 : m_Size(0), m_Capacity(size), m_Array(nullptr)
 {
-  NEPTUNE_ASSERT(size >= 0, "Cannot create DynamicArray with negative size!");
-  if (size <= 0) return;
-  
   m_Array = (T*) ::operator new(m_Capacity * sizeof(T));
 }
 
@@ -183,8 +180,8 @@ void DynamicArray<T>::Reserve(Neptune::Size size)
       new (&tmp[i]) T(MoveIfNoexcept(m_Array[i]));
     } catch (...)
     {
-      for (Neptune::Size j = 0; j < i; j++)
-        tmp[j].~T();
+      for (Neptune::Size j = i; j > 0; j--)
+        tmp[j - 1].~T();
       ::operator delete(tmp, size * sizeof(T));
       
       throw;
@@ -215,21 +212,13 @@ void DynamicArray<T>::Shrink(Neptune::Size size) noexcept
 template <typename T>
 void DynamicArray<T>::PushBack(const T& val)
 {
-  if (m_Size == m_Capacity)
-    Reserve(NextSize());
-  
-  new (&m_Array[m_Size]) T(val);
-  m_Size++;
+  EmplaceBack(val);
 }
 
 template <typename T>
 void DynamicArray<T>::PushBack(T&& val)
 {
-  if (m_Size == m_Capacity)
-    Reserve(NextSize());
-  
-  new (&m_Array[m_Size]) T(MoveIfNoexcept(val));
-  m_Size++;
+  EmplaceBack(MoveIfNoexcept(val));
 }
 
 template <typename T>
