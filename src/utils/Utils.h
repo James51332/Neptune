@@ -104,13 +104,13 @@ constexpr typename Conditional<NoThrowMoveConstructable<T>::Value || !CopyConstr
 template <typename T>
 constexpr T&& Forward(typename RemoveReference<T>::Value& val) noexcept // T&& deduces to T&
 {
-  return val;
+  return static_cast<T&&>(val);
 }
 
 template <typename T>
 constexpr T&& Forward(typename RemoveReference<T>::Value&& val) noexcept // T&& deduces to T&&
 {
-  return Move(val);
+  return static_cast<T&&>(val);
 }
 
 // ----- Swap -----------------

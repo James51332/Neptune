@@ -1,6 +1,6 @@
 #pragma once
 
-#include <type_traits>
+#include "utils/Utils.h"
 
 namespace Neptune
 {
@@ -36,7 +36,7 @@ class Function<Ret(Args...)>
     
     virtual Ret Invoke(Args... args) override
     {
-      return m_Function(args...);
+      return m_Function(Forward<Args>(args)...);
     }
     
     virtual CallableBase* Clone() override
@@ -111,13 +111,10 @@ Ret Function<Ret(Args...)>::operator()(Args... args) const
 {
 	if (m_Callable)
   {
-    try
-    {
-      return m_Callable->Invoke(args...);
-    } catch (...)
-    {
-      throw;
-    }
+    return m_Callable->Invoke(Forward<Args>(args)...);
+  } else
+  {
+    throw;
   }
 }
 
