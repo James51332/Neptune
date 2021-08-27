@@ -12,3 +12,4 @@
 #include "utils/DynamicArray.h"
 #include "utils/SmartPointer.h"
 #include "utils/Function.h"
+#include "utils/HashMap.h"
