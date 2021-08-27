@@ -76,6 +76,7 @@ template <typename T>
 DynamicArray<T>::DynamicArray(Neptune::Size size)
 : m_Size(0), m_Capacity(size), m_Array(nullptr)
 {
+  if (size == 0) return;
   m_Array = (T*) ::operator new(m_Capacity * sizeof(T));
 }
 
@@ -124,12 +125,14 @@ DynamicArray<T>::~DynamicArray() noexcept
 template <typename T>
 T& DynamicArray<T>::operator[](Neptune::Size index) noexcept
 {
+  // TODO: Debug asserts
   return m_Array[index];
 }
 
 template <typename T>
 const T& DynamicArray<T>::operator[](Neptune::Size index) const noexcept
 {
+  // TODO: Debug asserts
   return m_Array[index];
 }
 
@@ -154,7 +157,7 @@ Neptune::Size DynamicArray<T>::Capacity() const noexcept
 template <typename T>
 void DynamicArray<T>::Clear() noexcept
 {
-  if (m_Capacity <= 0)
+  if (m_Capacity == 0)
     return;
   
   for (Neptune::Size i = m_Size; i > 0; i--)
@@ -235,6 +238,8 @@ void DynamicArray<T>::EmplaceBack(Args&&... args)
 template <typename T>
 void DynamicArray<T>::PopBack() noexcept
 {
+  // TODO: Debug assert
+  
   m_Array[m_Size - 1].~T();
   m_Size--;
 }
