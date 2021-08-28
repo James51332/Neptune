@@ -34,7 +34,8 @@ project "Neptune"
 
 	includedirs
 	{
-		"src"
+		"src",
+  	"pch"
 	}
 
 	filter "system:macosx"
@@ -43,6 +44,9 @@ project "Neptune"
 	filter "system:windows"
 		defines "NEPTUNE_WINDOWS"
 		systemversion "latest"
+  
+  filter "action:xcode4"
+    pchheader "../pch/neptunepch.h"
 
 	filter "configurations:Debug"
 		defines "NEPTUNE_DEBUG"
@@ -62,7 +66,7 @@ project "Sandbox"
 	debugdir "./"
 
 	targetdir ("build/bin/neptune-" .. string.lower("%{cfg.system}") .. "/%{cfg.shortname}/")
-        objdir ("build/bin-obj/neptune-" .. string.lower("%{cfg.system}") .. "/%{cfg.shortname}/")
+  objdir ("build/bin-obj/neptune-" .. string.lower("%{cfg.system}") .. "/%{cfg.shortname}/")
 
 	files
 	{
@@ -77,7 +81,8 @@ project "Sandbox"
 	
 	includedirs
 	{
-		"src"
+		"src",
+  	"pch"
 	}
 
 	sysincludedirs
@@ -86,20 +91,23 @@ project "Sandbox"
 	}
 
 	filter "system:macosx"
-                defines "NEPTUNE_MACOS"
+  	defines "NEPTUNE_MACOS"
 
-        filter "system:windows"
-                defines "NEPTUNE_WINDOWS"
-                systemversion "latest"
+  filter "system:windows"
+  	defines "NEPTUNE_WINDOWS"
+    systemversion "latest"
+    
+  filter "action:xcode4"
+    pchheader "../pch/neptunepch.h"
 
-        filter "configurations:Debug"
-                defines "NEPTUNE_DEBUG"
+  filter "configurations:Debug"
+    defines "NEPTUNE_DEBUG"
 		symbols "On"
 
-        filter "configurations:Release"
-                defines "NEPTUNE_RELEASE"
+  filter "configurations:Release"
+    defines "NEPTUNE_RELEASE"
 		optimize "On"
 	
-        filter "configurations:Dist"
-                defines "NEPTUNE_DIST"
+  filter "configurations:Dist"
+    defines "NEPTUNE_DIST"
 		optimize "Full"
