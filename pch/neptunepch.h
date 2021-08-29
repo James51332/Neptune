@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/PlatformDetector.h"
+
 #include "utils/Utils.h"
 #include "utils/Types.h"
 #include "utils/DynamicArray.h"

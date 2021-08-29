@@ -29,7 +29,9 @@ project "Neptune"
 	{
 		"src/**.cpp",
 		"src/**.h",
-		"include/**.h"
+		"include/**.h",
+  	"pch/neptunepch.h",
+   	"pch/neptunepch.cpp"
 	}
 
 	includedirs
@@ -38,15 +40,15 @@ project "Neptune"
   	"pch"
 	}
 
-	filter "system:macosx"
-		defines "NEPTUNE_MACOS"
-
 	filter "system:windows"
-		defines "NEPTUNE_WINDOWS"
 		systemversion "latest"
   
   filter "action:xcode4"
     pchheader "../pch/neptunepch.h"
+    
+  filter "action:vs*"
+    pchheader "neptunepch.h"
+    pchheader "neptunepch.cpp"
 
 	filter "configurations:Debug"
 		defines "NEPTUNE_DEBUG"
@@ -63,7 +65,7 @@ project "Neptune"
 project "Sandbox"
 	kind "ConsoleApp"
 	
-	debugdir "./"
+	debugdir (path.getabsolute("."))
 
 	targetdir ("build/bin/neptune-" .. string.lower("%{cfg.system}") .. "/%{cfg.shortname}/")
   objdir ("build/bin-obj/neptune-" .. string.lower("%{cfg.system}") .. "/%{cfg.shortname}/")
@@ -89,16 +91,16 @@ project "Sandbox"
 	{
 		"include"
 	}
-
-	filter "system:macosx"
-  	defines "NEPTUNE_MACOS"
-
+	
   filter "system:windows"
-  	defines "NEPTUNE_WINDOWS"
     systemversion "latest"
     
   filter "action:xcode4"
     pchheader "../pch/neptunepch.h"
+    
+  filter "action:vs*"
+    pchheader "neptunepch.h"
+    pchheader "neptunepch.cpp"
 
   filter "configurations:Debug"
     defines "NEPTUNE_DEBUG"
