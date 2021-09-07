@@ -9,3 +9,4 @@
 #include "utils/Function.h"
 #include "utils/HashMap.h"
 #include "utils/String.h"
+#include "utils/Lock.h"
