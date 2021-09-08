@@ -10,3 +10,4 @@
 #include "utils/HashMap.h"
 #include "utils/String.h"
 #include "utils/Lock.h"
+#include "utils/Thread.h"
