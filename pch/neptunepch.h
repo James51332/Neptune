@@ -1,7 +1,5 @@
 #pragma once
 
-#include "core/PlatformDetector.h"
-
 #include "utils/Utils.h"
 #include "utils/Types.h"
 #include "utils/DynamicArray.h"
@@ -11,3 +9,7 @@
 #include "utils/String.h"
 #include "utils/Lock.h"
 #include "utils/Thread.h"
+
+#include "core/PlatformDetector.h"
+#include "core/Intrinsics.h"
+#include "core/Logger.h"

@@ -13,7 +13,7 @@ String::String() noexcept
 {
 }
 
-String::String(const char* data) noexcept
+String::String(const char* data)
 	: m_Size(0), m_Data(nullptr)
 {
 

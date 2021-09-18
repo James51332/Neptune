@@ -4,7 +4,10 @@
 #include "core/EntryPoint.h"
 
 // ----- Core Engine ----------
+#include "core/PlatformDetector.h"
+#include "core/Intrinsics.h"
 #include "core/Application.h"
+#include "core/Logger.h"
 
 // ----- Utilities ------------
 #include "utils/Utils.h"

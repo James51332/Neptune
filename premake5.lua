@@ -17,6 +17,9 @@ workspace "Neptune"
 	{
 		"MultiProcessorCompile"
 	}
+	
+includeDirs = {}
+includeDirs["spdlog"] = "thirdparty/spdlog/include"
 
 project "Neptune"
 	kind "StaticLib"
@@ -37,7 +40,12 @@ project "Neptune"
 	includedirs
 	{
 		"src",
-  	"pch"
+  	"pch",
+	}
+	
+	sysincludedirs
+	{
+		includeDirs["spdlog"]
 	}
 
 	filter "system:windows"
@@ -89,7 +97,8 @@ project "Sandbox"
 
 	sysincludedirs
 	{
-		"include"
+		"include",
+  	includeDirs["spdlog"]
 	}
 	
   filter "system:windows"
