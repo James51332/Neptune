@@ -5,6 +5,7 @@
 #include "core/Intrinsics.h"
 
 #include <spdlog/spdlog.h>
+#include <memory>
 
 namespace Neptune
 {
