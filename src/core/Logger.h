@@ -3,8 +3,10 @@
 // #include "utils/SmartPointer.h" (spdlog uses shared_ptr)
 
 #include "core/Intrinsics.h"
+#include "utils/String.h"
 
 #include <spdlog/spdlog.h>
+#include <spdlog/fmt/ostr.h>
 #include <memory>
 
 namespace Neptune
@@ -24,6 +26,10 @@ private:
   static std::shared_ptr<spdlog::logger> m_CoreLogger;
   static std::shared_ptr<spdlog::logger> m_ClientLogger;
 };
+
+inline std::ostream& operator<<(std::ostream& os, const String& s) {
+  return (os << s.Raw());
+}
 
 #ifdef NEPTUNE_LOG
 
