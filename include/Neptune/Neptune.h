@@ -9,7 +9,12 @@
 #include "core/Application.h"
 #include "core/Logger.h"
 #include "core/KeyCode.h"
+#include "core/MouseCode.h"
+
+// ----- Events ----------
 #include "core/Event.h"
+#include "core/KeyEvent.h"
+#include "core/MouseEvent.h"
 
 // ----- Utilities ------------
 #include "utils/Utils.h"
