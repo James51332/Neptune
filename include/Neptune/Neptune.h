@@ -26,3 +26,4 @@
 #include "utils/String.h"
 #include "utils/Lock.h"
 #include "utils/Thread.h"
+#include "utils/Queue.h"
