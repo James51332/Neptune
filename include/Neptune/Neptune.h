@@ -8,6 +8,8 @@
 #include "core/Intrinsics.h"
 #include "core/Application.h"
 #include "core/Logger.h"
+#include "core/KeyCode.h"
+#include "core/Event.h"
 
 // ----- Utilities ------------
 #include "utils/Utils.h"
