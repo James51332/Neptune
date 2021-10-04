@@ -10,6 +10,9 @@ namespace Neptune
 template <typename T>
 class Scope
 {
+  template <typename U>
+  friend class Scope;
+  
 public:
   using Type = T;
   
@@ -18,6 +21,9 @@ public:
   
   Scope(const Scope& other) = delete;
   Scope(Scope&& other) noexcept;
+  
+  template <typename U>
+  Scope(Scope<U>&& other) noexcept;
   
   Scope& operator=(const Scope& other) = delete;
   Scope& operator=(Scope&& other) noexcept;
@@ -30,6 +36,7 @@ public:
   const T* operator->() const noexcept;
   
   T* Raw() noexcept;
+  T* Release() noexcept;
   
 private:
   T* m_Pointer;
@@ -43,9 +50,15 @@ Scope<T>::Scope(T* pointer) noexcept
 
 template <typename T>
 Scope<T>::Scope(Scope<T>&& other) noexcept
-: m_Pointer(nullptr)
+: m_Pointer(other.Release())
 {
-  Neptune::Swap(m_Pointer, other.m_Pointer);
+}
+
+template <typename T>
+template <typename U>
+Scope<T>::Scope(Scope<U>&& other) noexcept
+: m_Pointer(other.Release())
+{
 }
 
 template <typename T>
@@ -94,6 +107,14 @@ T* Scope<T>::Raw() noexcept
   return m_Pointer;
 }
 
+template <typename T>
+T* Scope<T>::Release() noexcept
+{
+  T* tmp = nullptr;
+  Neptune::Swap(m_Pointer, tmp);
+  return tmp;
+}
+
 // ----- CreateScope ----------
 
 template <typename T, typename... Args>
@@ -104,31 +125,39 @@ Scope<T> CreateScope(Args&&... args)
 
 // ----- Ref ------------------
 
+namespace Helper
+{
+
+struct Counter
+{
+public:
+  void Increment()
+  {
+    m_References++;
+  }
+	
+  void Decrement()
+  {
+    m_References--;
+  }
+	
+  UInt32& References()
+  {
+    return m_References;
+  }
+	
+private:
+	  UInt32 m_References = 1;
+};
+
+} // namespace Helper
+
 template <typename T>
 class Ref
 {
-  struct Counter
-  {
-  public:
-    void Increment()
-    {
-      m_References++;
-    }
-    
-    void Decrement()
-    {
-      m_References--;
-    }
-    
-    UInt32& References()
-    {
-      return m_References;
-    }
-    
-  private:
-    UInt32 m_References = 1;
-  };
-  
+  template <typename U>
+  friend class Ref;
+
 public:
   using Type = T;
   
@@ -136,7 +165,12 @@ public:
   Ref(T* pointer = nullptr) noexcept;
   
   Ref(const Ref& other) noexcept;
-  Ref(Ref&& other) = delete; // Move ctor is absolutely useless
+  
+  // No need to create a Move ctor because the copy constructor is only copying a pointer
+  // Ref(Ref&& other);
+  
+  template <typename U>
+  Ref(const Ref<U>& other) noexcept;
   
   Ref& operator=(Ref other) noexcept;
   
@@ -151,18 +185,26 @@ public:
   
 private:
   T* m_Pointer;
-  Counter* m_Counter;
+  Helper::Counter* m_Counter;
 };
 
 template <typename T>
 Ref<T>::Ref(T* pointer) noexcept
-: m_Pointer(pointer), m_Counter(new Counter())
+: m_Pointer(pointer), m_Counter(new Helper::Counter())
 {
 }
 
 template <typename T>
 Ref<T>::Ref(const Ref<T>& other) noexcept
 : m_Pointer(other.m_Pointer), m_Counter(other.m_Counter)
+{
+  m_Counter->Increment();
+}
+
+template <typename T>
+template <typename U>
+Ref<T>::Ref(const Ref<U>& other) noexcept
+	: m_Pointer(other.m_Pointer), m_Counter(other.m_Counter)
 {
   m_Counter->Increment();
 }
