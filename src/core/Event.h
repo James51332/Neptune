@@ -20,10 +20,14 @@ enum class EventType
 virtual int GetCategoryFlags() const override { return x; }
 
 #define EVENT_TYPE(x) \
-virtual EventType GetType() const override { return EventType::x; }
+virtual EventType GetType() const override { return EventType::x; } \
+static EventType GetStaticType() { return EventType::x; }
   
 class Event
 {
+public:
+  bool Handled = false;
+  
 public:
   virtual ~Event() noexcept = default;
   
@@ -34,8 +38,6 @@ public:
   {
     return "";
   }
-  
-private:
 };
 
 } // namespace Neptune
