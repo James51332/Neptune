@@ -36,7 +36,7 @@ public:
   const T* operator->() const noexcept;
   
   T* Raw() noexcept;
-  T* Raw() const noexcept;
+  const T* Raw() const noexcept;
   T* Release() noexcept;
   
 private:
@@ -109,7 +109,7 @@ T* Scope<T>::Raw() noexcept
 }
 
 template <typename T>
-T* Scope<T>::Raw() const noexcept
+const T* Scope<T>::Raw() const noexcept
 {
   return m_Pointer;
 }
@@ -189,7 +189,7 @@ public:
   const T* operator->() const noexcept;
   
   T* Raw() noexcept;
-  T* Raw() const noexcept;
+  const T* Raw() const noexcept;
   
 private:
   T* m_Pointer;
@@ -270,7 +270,7 @@ T* Ref<T>::Raw() noexcept
 }
 
 template <typename T>
-T* Ref<T>::Raw() const noexcept
+const T* Ref<T>::Raw() const noexcept
 {
   return m_Pointer;
 }

@@ -22,7 +22,16 @@ Application::~Application()
 
 void Application::Run()
 {
-  //while (true);
+  m_Running = true;
+  while (m_Running)
+  {
+    // Event Stage
+    Scope<Event> e;
+    while (m_EventQueue.PopEvent(e))
+    {
+      // Dispatch Events
+    }
+  }
 }
 
 Application* Application::GetSingleton() noexcept
