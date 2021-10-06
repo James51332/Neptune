@@ -1,6 +1,9 @@
 #pragma once
 
+#include "utils/SmartPointer.h"
+
 #include "core/EventQueue.h"
+#include "core/NativeApplication.h"
 
 namespace Neptune
 {
@@ -22,7 +25,9 @@ private:
 
 private:
   bool m_Running = false;
+  
   EventQueue m_EventQueue;
+  Scope<NativeApplication> m_NativeApp;
 };
 
 } // namespace Neptune

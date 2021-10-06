@@ -42,7 +42,8 @@ project "Neptune"
 	includedirs
 	{
 		"src",
-  	"pch",
+  	"platform",
+  	"pch"
 	}
 	
 	sysincludedirs
@@ -54,6 +55,14 @@ project "Neptune"
 
 	filter "system:windows"
 		systemversion "latest"
+  
+  filter "system:macosx"
+  	files
+  	{
+      "platform/macos/**.cpp",
+      "platform/macos/**.mm",
+      "platform/macos/**.h"
+    }
   
   filter "action:xcode4"
     pchheader "../pch/neptunepch.h"
@@ -96,7 +105,8 @@ project "Sandbox"
 	includedirs
 	{
 		"src",
-  	"pch"
+    "platform",
+    "pch"
 	}
 
 	sysincludedirs
@@ -109,6 +119,12 @@ project "Sandbox"
 	
   filter "system:windows"
     systemversion "latest"
+    
+  filter "system:macosx"
+    links
+    {
+    	"Cocoa.framework"
+    }
     
   filter "action:xcode4"
     pchheader "../pch/neptunepch.h"
