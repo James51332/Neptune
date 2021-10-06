@@ -11,6 +11,10 @@
 #include "core/KeyCode.h"
 #include "core/MouseCode.h"
 
+// ----- Math ----------
+#include "math/Vector.h"
+#include "math/Matrix.h"
+
 // ----- Events ----------
 #include "core/Event.h"
 #include "core/KeyEvent.h"

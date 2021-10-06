@@ -21,6 +21,7 @@ workspace "Neptune"
 includeDirs = {}
 includeDirs["spdlog"] = "thirdparty/spdlog/include"
 includeDirs["concurrentQueue"] = "thirdparty/concurrentQueue"
+includeDirs["glm"] = "thirdparty/glm"
 
 project "Neptune"
 	kind "StaticLib"
@@ -47,7 +48,8 @@ project "Neptune"
 	sysincludedirs
 	{
 		includeDirs["spdlog"],
-  	includeDirs["concurrentQueue"]
+  	includeDirs["concurrentQueue"],
+  	includeDirs["glm"]
 	}
 
 	filter "system:windows"
@@ -101,7 +103,8 @@ project "Sandbox"
 	{
 		"include",
   	includeDirs["spdlog"],
-   	includeDirs["concurrentQueue"] 
+   	includeDirs["concurrentQueue"],
+    includeDirs["glm"] 
 	}
 	
   filter "system:windows"
