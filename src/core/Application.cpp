@@ -4,6 +4,10 @@
 #define NEPTUNE_ENTRYPOINT
 #include "EntryPoint.h"
 
+#include "core/KeyEvent.h"
+#include "core/MouseEvent.h"
+#include "core/WindowEvent.h"
+
 namespace Neptune
 {
 
@@ -15,6 +19,7 @@ Application::Application()
   s_Application = this;
   
   m_NativeApp = NativeApplication::Create();
+  m_Window = Window::Create();
 }
 
 Application::~Application()
@@ -24,6 +29,10 @@ Application::~Application()
 
 void Application::Run()
 {
+  
+  // Initialization
+  m_Window->Show();
+  
   m_Running = true;
   while (m_Running)
   {
@@ -34,8 +43,15 @@ void Application::Run()
     while (m_EventQueue.PopEvent(e))
     {
       // Dispatch Events
+      m_EventQueue.Dispatch<WindowClosedEvent>(e, [this](const WindowClosedEvent& event) {
+        Stop();
+        return true;
+      });
     }
   }
+  
+  // Shutdown
+  m_Window->Close();
 }
 
 Application* Application::GetSingleton() noexcept
