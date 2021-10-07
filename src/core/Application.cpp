@@ -13,13 +13,13 @@ namespace Neptune
 
 Application* Application::s_Application = nullptr;
 
-Application::Application()
+Application::Application(const WindowDesc& desc)
 {
   NEPTUNE_ASSERT(!s_Application, "Only one instance of application can be created!");
   s_Application = this;
   
   m_NativeApp = NativeApplication::Create();
-  m_Window = Window::Create();
+  m_Window = Window::Create(desc);
 }
 
 Application::~Application()

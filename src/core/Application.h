@@ -13,7 +13,7 @@ namespace Neptune
 class Application
 {
 public:
-  Application();
+  Application(const WindowDesc& desc = WindowDesc(1280, 720, "Neptune"));
   virtual ~Application();
   
   void Run();
