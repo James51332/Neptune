@@ -5,23 +5,25 @@ namespace Neptune
 
 enum EventCategory
 {
-  EventCategoryInput = 1 << 0,
-  EventCategoryKeyboard = 1 << 1,
-  EventCategoryMouse = 1 << 2
+  EventCategoryApplication = 1 << 0,
+  EventCategoryInput = 1 << 1,
+  EventCategoryKeyboard = 1 << 2,
+  EventCategoryMouse = 1 << 3
 };
 
 enum class EventType
 {
 	MousePressed, MouseReleased, MouseMoved, MouseScrolled,
-  KeyPressed, KeyReleased, KeyTyped
+  KeyPressed, KeyReleased, KeyTyped,
+  WindowClosed, WindowResized, WindowMoved, WindowFocused, WindowLostFocus
 };
 
 #define EVENT_CATEGORY(x) \
-virtual int GetCategoryFlags() const override { return x; }
+virtual int GetCategoryFlags() const noexcept override { return x; }
 
 #define EVENT_TYPE(x) \
-virtual EventType GetType() const override { return EventType::x; } \
-static EventType GetStaticType() { return EventType::x; }
+virtual EventType GetType() const noexcept override { return EventType::x; } \
+static EventType GetStaticType() noexcept { return EventType::x; }
   
 class Event
 {

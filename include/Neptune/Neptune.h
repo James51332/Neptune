@@ -19,6 +19,7 @@
 #include "core/Event.h"
 #include "core/KeyEvent.h"
 #include "core/MouseEvent.h"
+#include "core/WindowEvent.h"
 #include "core/EventQueue.h"
 
 // ----- Utilities ------------
