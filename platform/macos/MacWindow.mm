@@ -89,7 +89,7 @@ void MacWindow::Hide()
 
 void MacWindow::Close()
 {
-  
+  [(NSWindow*)m_Window close];
 }
 
 } // namespace Neptune
