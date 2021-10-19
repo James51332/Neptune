@@ -191,7 +191,17 @@ public:
   T* Raw() noexcept;
   const T* Raw() const noexcept;
   
+  template <typename U, typename Y>
+  friend Ref<U> StaticRefCast(const Ref<Y>& other);
+  
 private:
+  template <typename U>
+  Ref(U* pointer, Helper::Counter* counter)
+  	: m_Pointer(pointer), m_Counter(counter)
+  {
+    
+  }
+  
   T* m_Pointer;
   Helper::Counter* m_Counter;
 };
@@ -281,6 +291,14 @@ template <typename T, typename... Args>
 Ref<T> CreateRef(Args&&... args)
 {
   return Ref<T>(new T(Forward<Args>(args)...));
+}
+
+// ----- StaticRefCast ------------
+
+template <typename U, typename Y>
+Ref<U> StaticRefCast(const Ref<Y>& other)
+{
+  return Ref<U>(static_cast<U*>(other.m_Pointer), other.m_Counter);
 }
 
 } // namespace Neptune

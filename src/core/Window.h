@@ -4,6 +4,8 @@
 #include "utils/SmartPointer.h"
 #include "utils/String.h"
 
+#include "renderer/RenderContext.h"
+
 namespace Neptune
 {
 
@@ -31,6 +33,7 @@ public:
     return m_Desc;
   }
   virtual void SetDesc(const WindowDesc& desc) = 0;
+  virtual void SetContext(const Ref<RenderContext>& context) = 0;
   
   virtual void Show() = 0;
   virtual void Hide() = 0;

@@ -7,6 +7,8 @@
 #include "core/NativeApplication.h"
 #include "core/Window.h"
 
+#include "renderer/RenderContext.h"
+
 namespace Neptune
 {
 
@@ -36,6 +38,7 @@ private:
   EventQueue m_EventQueue;
   Scope<NativeApplication> m_NativeApp;
   Scope<Window> m_Window;
+  Ref<RenderContext> m_RenderContext;
 };
 
 } // namespace Neptune

@@ -3,6 +3,7 @@
 
 #include "MacKeyCode.h"
 #include "MacMouseCode.h"
+#include "MacRenderContext.h"
 
 #include "core/KeyCode.h"
 #include "core/MouseCode.h"
@@ -15,6 +16,8 @@
 #include "core/KeyEvent.h"
 
 #include <Cocoa/Cocoa.h>
+#include <Metal/Metal.h>
+#include <QuartzCore/CAMetalLayer.h>
 
 // ----- NeptuneWindowDelegate ---------
 
@@ -71,7 +74,6 @@ static const NSRange emptyRange = NSMakeRange(NSNotFound, 0);
 
 - (void)updateLayer
 {
-  
 }
 
 - (BOOL) acceptsFirstResponder
@@ -182,16 +184,6 @@ static const NSRange emptyRange = NSMakeRange(NSNotFound, 0);
   NSRect windowSize = [[event window] contentRectForFrameRect: [[event window] frame]];
   Neptune::Application::PushEvent(Neptune::CreateScope<Neptune::MouseMovedEvent>(location.x, windowSize.size.height - location.y));
 }
-
-//- (void)mouseEntered:(NSEvent *)event
-//{
-//
-//}
-//
-//- (void)mouseExited:(NSEvent *)event
-//{
-//
-//}
 
 - (void)rightMouseDown:(NSEvent *)event
 {
@@ -319,6 +311,22 @@ void MacWindow::SetDesc(const WindowDesc& desc)
     [window setTitle:@(desc.Name.Raw())];
   
   [window setContentSize: NSMakeSize(desc.Width, desc.Height)];
+}
+
+void MacWindow::SetContext(const Ref<RenderContext>& ctx)
+{
+  RenderAPI api = ctx->GetAPI();
+  switch (api) {
+    case RenderAPI::None: { NEPTUNE_ASSERT(false, "Unsupported RenderAPI on this platform!"); return; }
+    case RenderAPI::OpenGL: { NEPTUNE_ASSERT(false, "Unsupported RenderAPI on this platform!"); return; }
+    case RenderAPI::Metal: {
+      Ref<MacMetalRenderContext> context = StaticRefCast<MacMetalRenderContext>(ctx);
+      ((NeptuneView*)m_View).layer = (CAMetalLayer*)context->m_Layer;
+      break;
+    }
+    case RenderAPI::Vulkan: { NEPTUNE_ASSERT(false, "Unsupported RenderAPI on this platform!"); return; }
+    case RenderAPI::DirectX: { NEPTUNE_ASSERT(false, "Unsupported RenderAPI on this platform!"); return; }
+  }
 }
 
 void MacWindow::Show()

@@ -123,7 +123,9 @@ project "Sandbox"
   filter "system:macosx"
     links
     {
-    	"Cocoa.framework"
+    	"Cocoa.framework",
+    	"QuartzCore.framework",
+  		"Metal.framework"
     }
     
   filter "action:xcode4"

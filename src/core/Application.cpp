@@ -8,6 +8,10 @@
 #include "core/MouseEvent.h"
 #include "core/WindowEvent.h"
 
+#include "renderer/RenderContext.h"
+
+#include "macos/MacRenderContext.h"
+
 namespace Neptune
 {
 
@@ -20,6 +24,9 @@ Application::Application(const WindowDesc& desc)
   
   m_NativeApp = NativeApplication::Create();
   m_Window = Window::Create(desc);
+  
+  m_RenderContext = RenderContext::Create();
+  m_Window->SetContext(m_RenderContext);
 }
 
 Application::~Application()

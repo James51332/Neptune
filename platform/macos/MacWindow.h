@@ -12,6 +12,7 @@ public:
   ~MacWindow();
 
   void SetDesc(const WindowDesc& desc);
+  void SetContext(const Ref<RenderContext>& context);
   
   void Show();
   void Hide();
