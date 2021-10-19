@@ -22,7 +22,7 @@ void MacApplication::PollEvents() noexcept
   for (;;)
   {
     NSEvent* event = [NSApp nextEventMatchingMask: NSEventMaskAny
-                                        untilDate: [NSDate distantPast]
+                                        untilDate: nil
                                            inMode: NSDefaultRunLoopMode
                                           dequeue: YES];
     

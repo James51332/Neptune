@@ -5,7 +5,7 @@ class SandboxApp : public Neptune::Application
 {
 public:
   SandboxApp()
-  	: Application({1280, 720, "Sandbox"})
+  	: Application({1280, 720, "Sandbox", true})
   {
   }
   
