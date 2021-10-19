@@ -5,6 +5,7 @@ namespace Neptune
 
 enum KeyCode
 {
+  KeyNone 						 = -1,
   KeySpace             = 32,
   KeyApostrophe        = 39,
   KeyComma             = 44,

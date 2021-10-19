@@ -1,10 +1,22 @@
 #include "neptunepch.h"
 #include "MacWindow.h"
 
-#include "core/WindowEvent.h"
+#include "MacKeyCode.h"
+#include "MacMouseCode.h"
+
+#include "core/KeyCode.h"
+#include "core/MouseCode.h"
+
 #include "core/Application.h"
 
+#include "core/Event.h"
+#include "core/WindowEvent.h"
+#include "core/MouseEvent.h"
+#include "core/KeyEvent.h"
+
 #include <Cocoa/Cocoa.h>
+
+// ----- NeptuneWindowDelegate ---------
 
 @interface NeptuneWindowDelegate : NSObject<NSWindowDelegate>
 @end
@@ -19,6 +31,226 @@
 
 @end
 
+// ----- NeptuneView ---------
+
+@interface NeptuneView : NSView <NSTextInputClient>
+{
+  Neptune::MacWindow* windowHandle;
+  NSAttributedString* string;
+}
+
+- (id) initWithWindow: (Neptune::MacWindow*) window;
+@end
+
+static const NSRange emptyRange = NSMakeRange(NSNotFound, 0);
+@implementation NeptuneView
+
+- (id) initWithWindow: (Neptune::MacWindow*) window
+{
+	if (self = [super init])
+  {
+    windowHandle = window;
+  }
+  return self;
+}
+
+- (BOOL) canBecomeKeyView
+{
+  return YES;
+}
+
+- (BOOL) wantsUpdateLayer
+{
+  return YES;
+}
+
+- (BOOL) wantsLayer
+{
+  return YES;
+}
+
+- (void)updateLayer
+{
+  
+}
+
+- (BOOL) acceptsFirstResponder
+{
+  return YES;
+}
+
+- (BOOL) hasMarkedText
+{
+  return NO;
+}
+
+- (NSRange)markedRange
+{
+  return emptyRange;
+}
+
+- (NSRange)selectedRange
+{
+  return emptyRange;
+}
+
+- (void) setMarkedText: (nonnull id)string
+         selectedRange: (NSRange)selectedRange
+      replacementRange: (NSRange)replacementRange
+{
+}
+
+- (void) unmarkText
+{
+}
+
+- (NSArray*) validAttributesForMarkedText
+{
+  return [NSArray array];
+}
+
+- (NSAttributedString *) attributedSubstringForProposedRange: (NSRange)range
+                                                 actualRange: (nullable NSRangePointer)actualRange
+{
+  return nil;
+}
+
+- (void) insertText: (id)string
+   replacementRange: (NSRange)replacementRange
+{
+  NSString* chars;
+  
+  if ([string isKindOfClass: [NSAttributedString class]])
+    chars = [string string];
+  else
+    chars = (NSString*) string;
+  
+  NSRange range = { 0, [chars length] };
+  while (range.length)
+  {
+    UInt32 codepoint = 0;
+    
+    if ([chars getBytes: &codepoint
+              maxLength: sizeof(codepoint)
+             usedLength: NULL
+               encoding: NSUTF32StringEncoding
+                options: 0
+                  range: range
+         remainingRange: &range])
+    {
+      if (codepoint >= 0xf700 && codepoint <= 0xf7ff)
+        continue;
+      
+      Neptune::Application::PushEvent(Neptune::CreateScope<Neptune::KeyTypedEvent>(codepoint));
+    }
+  }
+}
+
+- (NSUInteger)characterIndexForPoint: (NSPoint)point
+{
+  return 0;
+}
+
+- (NSRect)firstRectForCharacterRange: (NSRange)range
+                         actualRange: (nullable NSRangePointer)actualRange
+{
+  return NSMakeRect(0.0, 0.0, 0.0, 0.0);
+}
+
+- (void)doCommandBySelector: (nonnull SEL)selector
+{
+}
+
+- (void)mouseDown:(NSEvent *)event
+{
+  Neptune::Application::PushEvent(Neptune::CreateScope<Neptune::MousePressedEvent>(Neptune::MouseLeft));
+}
+
+- (void)mouseDragged:(NSEvent *)event
+{
+  [self mouseMoved: event];
+}
+
+- (void)mouseUp:(NSEvent *)event
+{
+  Neptune::Application::PushEvent(Neptune::CreateScope<Neptune::MouseReleasedEvent>(Neptune::MouseLeft));
+}
+
+- (void)mouseMoved:(NSEvent *)event
+{
+  NSPoint location = [event locationInWindow];
+  NSRect windowSize = [[event window] contentRectForFrameRect: [[event window] frame]];
+  Neptune::Application::PushEvent(Neptune::CreateScope<Neptune::MouseMovedEvent>(location.x, windowSize.size.height - location.y));
+}
+
+//- (void)mouseEntered:(NSEvent *)event
+//{
+//
+//}
+//
+//- (void)mouseExited:(NSEvent *)event
+//{
+//
+//}
+
+- (void)rightMouseDown:(NSEvent *)event
+{
+  Neptune::Application::PushEvent(Neptune::CreateScope<Neptune::MousePressedEvent>(Neptune::MouseRight));
+}
+
+- (void)rightMouseDragged:(NSEvent *)event
+{
+  [self mouseMoved: event];
+}
+
+- (void)rightMouseUp:(NSEvent *)event
+{
+  Neptune::Application::PushEvent(Neptune::CreateScope<Neptune::MouseReleasedEvent>(Neptune::MouseRight));
+}
+
+- (void)otherMouseDown:(NSEvent *)event
+{
+  Neptune::Application::PushEvent(Neptune::CreateScope<Neptune::MousePressedEvent>(Neptune::s_MouseTranslations[[event buttonNumber]]));
+}
+
+- (void)otherMouseDragged:(NSEvent *)event
+{
+  [self mouseMoved: event];
+}
+
+- (void)otherMouseUp:(NSEvent *)event
+{
+  Neptune::Application::PushEvent(Neptune::CreateScope<Neptune::MouseReleasedEvent>(Neptune::s_MouseTranslations[[event buttonNumber]]));
+}
+
+- (void)scrollWheel:(NSEvent *)event
+{
+  Neptune::Application::PushEvent(Neptune::CreateScope<Neptune::MouseScrolledEvent>([event scrollingDeltaY], [event scrollingDeltaX]));
+}
+
+- (void)keyDown:(NSEvent *)event
+{
+  Neptune::KeyCode key = Neptune::s_KeyTranslations[[event keyCode]];
+  if (key != Neptune::KeyNone)
+    Neptune::Application::PushEvent(Neptune::CreateScope<Neptune::KeyPressedEvent>(key));
+  [self interpretKeyEvents:@[event]];
+}
+
+- (void)keyUp:(NSEvent *)event
+{
+  Neptune::KeyCode key = Neptune::s_KeyTranslations[[event keyCode]];
+  if (key != Neptune::KeyNone)
+    Neptune::Application::PushEvent(Neptune::CreateScope<Neptune::KeyReleasedEvent>(key));
+}
+
+- (void)flagsChanged:(NSEvent *)event
+{
+  // TODO: Modifier key presses
+}
+@end
+
+// ----- MacWindow ---------
+
 namespace Neptune
 {
 
@@ -29,6 +261,7 @@ MacWindow::MacWindow(const WindowDesc& desc)
   NSInteger styleMask = NSWindowStyleMaskClosable
   										| NSWindowStyleMaskMiniaturizable
   										| NSWindowStyleMaskTitled;
+
   
   if (desc.Resizeable)
     styleMask |= NSWindowStyleMaskResizable;
@@ -49,17 +282,29 @@ MacWindow::MacWindow(const WindowDesc& desc)
   
   [window setDelegate: (NeptuneWindowDelegate*)m_WindowDelegate];
   
+  m_View = [[NeptuneView alloc] initWithFrame: content];
+  NEPTUNE_ASSERT(m_View, "Failed to create view!");
+  
+  [window setAcceptsMouseMovedEvents: YES];
+  [window setContentView: (NeptuneView*)m_View];
+  [window makeFirstResponder: (NeptuneView*)m_View];
+  
   m_Window = window;
 }
 
 MacWindow::~MacWindow()
 {
+  [(NSWindow*)m_Window setContentView: nil];
+  [(NeptuneView*)m_View release];
+  m_View = nullptr;
+  
+  [(NSWindow*)m_Window setDelegate: nil];
+  [(NeptuneWindowDelegate*)m_WindowDelegate release];
+  m_WindowDelegate = nullptr;
+  
   [(NSWindow*)m_Window close];
   [(NSWindow*)m_Window release];
   m_Window = nullptr;
-  
-  [(NeptuneWindowDelegate*)m_WindowDelegate release];
-  m_WindowDelegate = nullptr;
 }
 
 void MacWindow::SetDesc(const WindowDesc& desc)

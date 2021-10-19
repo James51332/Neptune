@@ -14,8 +14,8 @@ struct WindowDesc
   
   bool Resizeable = false;
   
-  WindowDesc(UInt32 width = 1280, UInt32 height = 720, String name = "Neptune Application")
-  	: Width(width), Height(height), Name(name)
+  WindowDesc(UInt32 width = 1280, UInt32 height = 720, String name = "Neptune Application", bool resizeable = false)
+  	: Width(width), Height(height), Name(name), Resizeable(resizeable)
   {
   }
 };

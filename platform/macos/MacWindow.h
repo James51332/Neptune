@@ -20,6 +20,7 @@ public:
 private:
   void* m_Window;
   void* m_WindowDelegate;
+  void* m_View;
 };
 
 } // namespace Neptune
