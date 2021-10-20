@@ -1,8 +1,5 @@
 #pragma once
 
-#include "utils/SmartPointer.h"
-#include "utils/Types.h"
-
 #include "renderer/RenderAPI.h"
 
 namespace Neptune

@@ -12,6 +12,9 @@ public:
   ~MacApplication();
   
   virtual void PollEvents() noexcept;
+  
+private:
+  void* m_AppDelegate;
 };
 
 } // namespace Neptune
