@@ -35,8 +35,11 @@ public:
   T* operator->() noexcept;
   const T* operator->() const noexcept;
   
+  operator bool() const noexcept { return m_Pointer; }
+  
   T* Raw() noexcept;
   const T* Raw() const noexcept;
+  
   T* Release() noexcept;
   
 private:
@@ -148,13 +151,13 @@ public:
     m_References--;
   }
 	
-  UInt32& References()
+  Size References()
   {
     return m_References;
   }
 	
 private:
-	  UInt32 m_References = 1;
+	Atomic<Size> m_References = 1;
 };
 
 } // namespace Helper
@@ -180,13 +183,18 @@ public:
   Ref(const Ref<U>& other) noexcept;
   
   Ref& operator=(Ref other) noexcept;
-  
+
   ~Ref() noexcept;
   
   T& operator*() noexcept;
   const T& operator*() const noexcept;
   T* operator->() noexcept;
   const T* operator->() const noexcept;
+  
+  operator bool() const noexcept { return m_Pointer; }
+  
+  void Reset(T* ptr);
+  void Reset() noexcept;
   
   T* Raw() noexcept;
   const T* Raw() const noexcept;
@@ -199,7 +207,6 @@ private:
   Ref(U* pointer, Helper::Counter* counter)
   	: m_Pointer(pointer), m_Counter(counter)
   {
-    
   }
   
   T* m_Pointer;
@@ -208,7 +215,7 @@ private:
 
 template <typename T>
 Ref<T>::Ref(T* pointer) noexcept
-: m_Pointer(pointer), m_Counter(new Helper::Counter())
+: m_Pointer(pointer), m_Counter(pointer ? new Helper::Counter() : nullptr)
 {
 }
 
@@ -216,7 +223,8 @@ template <typename T>
 Ref<T>::Ref(const Ref<T>& other) noexcept
 : m_Pointer(other.m_Pointer), m_Counter(other.m_Counter)
 {
-  m_Counter->Increment();
+  if (m_Counter)
+  	m_Counter->Increment();
 }
 
 template <typename T>
@@ -224,7 +232,8 @@ template <typename U>
 Ref<T>::Ref(const Ref<U>& other) noexcept
 	: m_Pointer(other.m_Pointer), m_Counter(other.m_Counter)
 {
-  m_Counter->Increment();
+  if (m_Counter)
+  	m_Counter->Increment();
 }
 
 template <typename T>
@@ -238,15 +247,7 @@ Ref<T>& Ref<T>::operator=(Ref<T> other) noexcept
 template <typename T>
 Ref<T>::~Ref() noexcept
 {
-  if (m_Counter)
-  {
-    m_Counter->Decrement();
-    if (m_Counter->References() == 0)
-    {
-      delete m_Pointer;
-      delete m_Counter;
-    }
-  }
+  Reset();
 }
 
 template <typename T>
@@ -271,6 +272,32 @@ template <typename T>
 const T* Ref<T>::operator->() const noexcept
 {
   return m_Pointer;
+}
+
+template <typename T>
+void Ref<T>::Reset(T* ptr)
+{
+  Reset();
+  
+  m_Counter = ptr ? new Helper::Counter() : nullptr;
+  m_Pointer = ptr;
+}
+
+template <typename T>
+void Ref<T>::Reset() noexcept
+{
+  if (m_Counter)
+  {
+    m_Counter->Decrement();
+    if (m_Counter->References() == 0)
+    {
+      delete m_Pointer;
+      delete m_Counter;
+    }
+  }
+  
+  m_Pointer = nullptr;
+  m_Counter = nullptr;
 }
 
 template <typename T>

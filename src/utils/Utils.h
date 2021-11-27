@@ -125,6 +125,18 @@ inline void Swap(T& a, T& b) // TODO: Noexcept if nothrow move constructable and
 
 } // namespace Neptune
 
+// ----- Atomic -----------------
+
+#include <atomic>
+
+namespace Neptune
+{
+
+template <typename T>
+using Atomic = ::std::atomic<T>;
+
+} // namespace Neptune
+
 // ----- Assert ---------------
 
 // TEMPORARY

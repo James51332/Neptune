@@ -21,6 +21,18 @@ using Float64 = double;
 
 namespace Neptune
 {
+
 using Size = decltype(sizeof(int));
+
 } // namespace Neptune
+
+// ----- Nullptr -----------------
+
+namespace Neptune
+{
+
+using Nullptr = decltype(nullptr);
+
+} // namespace Neptune
+
 
