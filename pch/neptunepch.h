@@ -1,5 +1,7 @@
 #pragma once
 
+// ----- Utilities -----------------
+
 #include "utils/Utils.h"
 #include "utils/Types.h"
 #include "utils/DynamicArray.h"
@@ -11,7 +13,14 @@
 #include "utils/Thread.h"
 #include "utils/Queue.h"
 
+// ----- Core -----------------
+
 #include "core/PlatformDetector.h"
 #include "core/Intrinsics.h"
 #include "core/Logger.h"
 #include "core/Assert.h"
+
+// ----- Math -----------------
+
+#include "math/Vector.h"
+#include "math/Matrix.h"
