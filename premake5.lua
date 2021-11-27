@@ -61,7 +61,10 @@ project "Neptune"
   	{
       "platform/macos/**.cpp",
       "platform/macos/**.mm",
-      "platform/macos/**.h"
+      "platform/macos/**.h",
+      "platform/metal/**.cpp",
+      "platform/metal/**.mm",
+      "platform/metal/**.h"
     }
   
   filter "action:xcode4"

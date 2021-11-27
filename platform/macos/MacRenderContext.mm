@@ -1,6 +1,8 @@
 #include "neptunepch.h"
 #include "MacRenderContext.h"
 
+#include "metal/MetalRenderDevice.h"
+
 #include <Cocoa/Cocoa.h>
 #include <Metal/Metal.h>
 #include <QuartzCore/CAMetalLayer.h>
@@ -32,8 +34,9 @@ MacRenderContext::~MacRenderContext()
 MacMetalRenderContext::MacMetalRenderContext()
 {
   m_API = RenderAPI::Metal;
+  m_Device = CreateRef<MetalRenderDevice>();
   m_Layer = [CAMetalLayer layer];
-  ((CAMetalLayer*)m_Layer).device = MTLCreateSystemDefaultDevice();
+  ((CAMetalLayer*)m_Layer).device = (id<MTLDevice>)((MetalRenderDevice*)m_Device.Raw())->GetDevice();
 }
 
 MacMetalRenderContext::~MacMetalRenderContext()
