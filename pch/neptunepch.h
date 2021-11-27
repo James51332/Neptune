@@ -14,3 +14,4 @@
 #include "core/PlatformDetector.h"
 #include "core/Intrinsics.h"
 #include "core/Logger.h"
+#include "core/Assert.h"

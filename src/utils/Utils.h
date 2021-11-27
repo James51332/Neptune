@@ -136,9 +136,3 @@ template <typename T>
 using Atomic = ::std::atomic<T>;
 
 } // namespace Neptune
-
-// ----- Assert ---------------
-
-// TEMPORARY
-#define NEPTUNE_ASSERT(x, msg) if (!(x)) { }
-
