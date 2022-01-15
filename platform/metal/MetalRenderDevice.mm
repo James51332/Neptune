@@ -15,7 +15,7 @@ MetalRenderDevice::MetalRenderDevice()
 
 MetalRenderDevice::~MetalRenderDevice()
 {
-  [(id<MTLDevice>)m_Device release];
+  [(id<MTLDevice>)m_Device release]; // retained
   [(id<MTLCommandQueue>)m_Queue release];
 }
 

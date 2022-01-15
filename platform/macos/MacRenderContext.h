@@ -17,12 +17,13 @@ public:
 
 // ----- MacMetalContext ---------
 
-class MacMetalRenderContext : public MacRenderContext
+class MacMetalRenderContext final : public MacRenderContext
 {
-  friend class MacWindow;
 public:
   MacMetalRenderContext();
   virtual ~MacMetalRenderContext();
+  
+  void* GetLayer() noexcept { return m_Layer; }
   
 private:
   void* m_Layer;

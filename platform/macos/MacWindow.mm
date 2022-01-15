@@ -1,19 +1,20 @@
 #include "neptunepch.h"
 #include "MacWindow.h"
 
-#include "MacKeyCode.h"
-#include "MacMouseCode.h"
-#include "MacRenderContext.h"
+#include "macos/MacKeyCode.h"
+#include "macos/MacMouseCode.h"
+#include "macos/MacRenderContext.h"
 
 #include "core/KeyCode.h"
 #include "core/MouseCode.h"
-
 #include "core/Application.h"
-
 #include "core/Event.h"
 #include "core/WindowEvent.h"
 #include "core/MouseEvent.h"
 #include "core/KeyEvent.h"
+
+#include "metal/MetalRenderDevice.h"
+#include "metal/MetalSync.h"
 
 #include <Cocoa/Cocoa.h>
 #include <Metal/Metal.h>
@@ -313,6 +314,29 @@ void MacWindow::SetDesc(const WindowDesc& desc)
   [window setContentSize: NSMakeSize(desc.Width, desc.Height)];
 }
 
+// shader source
+const char* shaders = R"(
+#include <metal_stdlib>
+using namespace metal;
+
+constant float3 vertices[] =
+{
+float3(0.0f, 0.5f, 0.0f),
+float3(0.5f, -0.5f, 0.0f),
+float3(-0.5f, -0.5f, 0.0f)
+};
+
+vertex float4 vertexShader(uint vertexID [[vertex_id]])
+{
+return float4(vertices[vertexID], 1);
+}
+
+fragment float4 fragmentShader(float4 in [[stage_in]])
+{
+// Return the interpolated color.
+return float4(1.0, 1.0, 1.0, 1.0);
+})";
+
 void MacWindow::SetContext(const Ref<RenderContext>& ctx)
 {
   RenderAPI api = ctx->GetAPI();
@@ -321,92 +345,63 @@ void MacWindow::SetContext(const Ref<RenderContext>& ctx)
     case RenderAPI::OpenGL: { NEPTUNE_ASSERT(false, "Unsupported RenderAPI on this platform!"); return; }
     case RenderAPI::Metal: {
       Ref<MacMetalRenderContext> context = StaticRefCast<MacMetalRenderContext>(ctx);
-      ((NeptuneView*)m_View).layer = (CAMetalLayer*)context->m_Layer;
-      
-      CAMetalLayer* layer = (CAMetalLayer*)context->m_Layer;
-      id<MTLDevice> device = layer.device;
+      ((NeptuneView*)m_View).layer = (CAMetalLayer*)context->GetLayer();
       
       // Until we abstract all of the primitives into c++, we need to interface in an objective-c++
       // file. This is a convenient spot to do that in the mean time.
       @autoreleasepool {
+        Ref<MetalRenderDevice> dev = StaticRefCast<MetalRenderDevice>(context->GetRenderDevice());
+        CAMetalLayer* layer = (CAMetalLayer*)context->GetLayer();
+        
+      	id<MTLDevice> device = (id<MTLDevice>)dev->GetDevice();
+        id<MTLCommandQueue> queue = (id<MTLCommandQueue>)dev->GetQueue();
         
         id<CAMetalDrawable> drawable = [layer nextDrawable];
         
-        // command queue. created once at start.
-        id<MTLCommandQueue> queue = [device newCommandQueue];
-        
-        // command buffer. created per frame. can be done in parellel
-        id<MTLCommandBuffer> buf = [queue commandBuffer];
-        
-        // shader source
-        const char* shaders = R"(
-				#include <metal_stdlib>
-        using namespace metal;
-        
-        constant float3 vertices[] =
-        {
-        	float3(0.0f, 0.5f, 0.0f),
-        	float3(0.5f, -0.5f, 0.0f),
-        	float3(-0.5f, -0.5f, 0.0f)
-        };
-        
-        vertex float4 vertexShader(uint vertexID [[vertex_id]])
-      	{
-          return float4(vertices[vertexID], 1);
-        }
-        
-        fragment float4 fragmentShader(float4 in [[stage_in]])
-        {
-          // Return the interpolated color.
-          return float4(1.0, 1.0, 1.0, 1.0);
-        })";
-        
-        NSError *error;
-        
-        // shader functions
         id<MTLLibrary> lib = [device newLibraryWithSource: @(shaders)
                                                   options: nil
-                                                    error: &error];
+                                                    error: nil];
         
         id<MTLFunction> vertexFunction = [lib newFunctionWithName: @"vertexShader"];
         id<MTLFunction> fragmentFunction = [lib newFunctionWithName: @"fragmentShader"];
-      
-        NSLog(@"%@", error);
         
         // pipeline state. (shader + vertex layout)
-        MTLRenderPipelineDescriptor* pipelineDesc = [[MTLRenderPipelineDescriptor alloc] init];
+        MTLRenderPipelineDescriptor* pipelineDesc = [MTLRenderPipelineDescriptor new];
         pipelineDesc.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
         pipelineDesc.vertexFunction = vertexFunction;
         pipelineDesc.fragmentFunction = fragmentFunction;
         
-        id<MTLRenderPipelineState> state = [device newRenderPipelineStateWithDescriptor:pipelineDesc error:&error];
+        id<MTLRenderPipelineState> state = [device newRenderPipelineStateWithDescriptor: pipelineDesc
+                                                                                  error: nil];
         
-        NSLog(@"%@", error.description);
-        
-        // This is our framebuffer
-        // We should create a swapchain that will allow us to get the next
-        // framebuffer to render to. A framebuffer is used to generate an encoder. (render pass).
+        id<MTLCommandBuffer> buf = [queue commandBuffer];
+
         MTLRenderPassDescriptor *renderPassDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
         renderPassDescriptor.colorAttachments[0].texture = drawable.texture;
         renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0.0,0.0,0.0,1.0);
-        
-        // This is a renderpass. generated from a framebuffer
         id<MTLRenderCommandEncoder> encoder = [buf renderCommandEncoderWithDescriptor: renderPassDescriptor];
-        
+
         [encoder setRenderPipelineState: state];
         [encoder drawPrimitives: MTLPrimitiveTypeTriangle
                     vertexStart: 0
                     vertexCount: 3];
-        
+
         [encoder endEncoding];
-        
-        // convenience method to display the contents of the drawable's texture on the viwe
-        // after the commandQueue executes the commandBuffer
+
         [buf presentDrawable: drawable];
+        
         [buf commit];
+        [buf waitUntilCompleted];
+        
+        [lib release];
+        [vertexFunction release];
+        [fragmentFunction release];
+        [pipelineDesc release];
+        [state release];
       }
       break;
+      
     }
     case RenderAPI::Vulkan: { NEPTUNE_ASSERT(false, "Unsupported RenderAPI on this platform!"); return; }
     case RenderAPI::DirectX: { NEPTUNE_ASSERT(false, "Unsupported RenderAPI on this platform!"); return; }

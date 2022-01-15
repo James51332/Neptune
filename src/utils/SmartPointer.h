@@ -207,6 +207,8 @@ private:
   Ref(U* pointer, Helper::Counter* counter)
   	: m_Pointer(pointer), m_Counter(counter)
   {
+    if (m_Counter)
+      m_Counter->Increment();
   }
   
   T* m_Pointer;
