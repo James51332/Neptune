@@ -16,6 +16,7 @@
 #include "metal/MetalRenderDevice.h"
 #include "metal/MetalSync.h"
 #include "metal/MetalShader.h"
+#include "metal/MetalPipelineState.h"
 
 #import <Cocoa/Cocoa.h>
 #import <Metal/Metal.h>
@@ -355,7 +356,6 @@ void MacWindow::SetContext(const Ref<RenderContext>& ctx)
         Ref<MetalRenderDevice> dev = StaticRefCast<MetalRenderDevice>(context->GetRenderDevice());
         CAMetalLayer* layer = (CAMetalLayer*)context->GetLayer();
         
-      	id<MTLDevice> device = (id<MTLDevice>)dev->GetDevice();
         id<MTLCommandQueue> queue = (id<MTLCommandQueue>)dev->GetQueue();
         
         id<CAMetalDrawable> drawable = [layer nextDrawable];
@@ -366,20 +366,16 @@ void MacWindow::SetContext(const Ref<RenderContext>& ctx)
           ShaderDesc desc;
           desc.vertexSrc = vertex;
           desc.fragmentSrc = fragment;
-          shader = StaticRefCast<Shader>(dev->CreateShader(desc));
+          shader = dev->CreateShader(desc);
         }
         
-        // pipeline state. (shader + vertex layout)
-        MTLRenderPipelineDescriptor* pipelineDesc = [MTLRenderPipelineDescriptor new];
-        pipelineDesc.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
-        
-        // obtain the functions from the shader.
-        Ref<MetalShader> metalShader = StaticRefCast<MetalShader>(shader);
-        pipelineDesc.vertexFunction = metalShader->GetVertexFunction();
-        pipelineDesc.fragmentFunction = metalShader->GetFragmentFunction();
-        
-        id<MTLRenderPipelineState> state = [device newRenderPipelineStateWithDescriptor: pipelineDesc
-                                                                                  error: nil];
+        // Create Pipeline State
+        Ref<PipelineState> pipeline;
+        {
+          PipelineStateDesc desc;
+          desc.Shader = shader;
+          pipeline = dev->CreatePipelineState(desc);
+        }
         
         id<MTLCommandBuffer> buf = [queue commandBuffer];
 
@@ -389,7 +385,7 @@ void MacWindow::SetContext(const Ref<RenderContext>& ctx)
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0.0,0.0,0.0,1.0);
         id<MTLRenderCommandEncoder> encoder = [buf renderCommandEncoderWithDescriptor: renderPassDescriptor];
 
-        [encoder setRenderPipelineState: state];
+        [encoder setRenderPipelineState: StaticRefCast<MetalPipelineState>(pipeline)->GetPipelineState()];
         [encoder drawPrimitives: MTLPrimitiveTypeTriangle
                     vertexStart: 0
                     vertexCount: 3];
@@ -400,9 +396,6 @@ void MacWindow::SetContext(const Ref<RenderContext>& ctx)
         
         [buf commit];
         [buf waitUntilCompleted];
-        
-        [pipelineDesc release];
-        [state release];
       }
       break;
       

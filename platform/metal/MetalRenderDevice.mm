@@ -2,6 +2,7 @@
 #include "MetalRenderDevice.h"
 
 #include "MetalShader.h"
+#include "MetalPipelineState.h"
 
 #import <Metal/MTLDevice.h>
 #import <Metal/MTLCommandQueue.h>
@@ -23,13 +24,15 @@ MetalRenderDevice::~MetalRenderDevice()
 
 Ref<Shader> MetalRenderDevice::CreateShader(const ShaderDesc& desc)
 {
-  Ref<Shader> shader = CreateRef<MetalShader>((id<MTLDevice>)m_Device, desc);
-  
-  // This prevents shaders from deleting before were finished.
-  // If a shader needs to explicitly be destroyed, we'll have to adjust.
-  m_Shaders.PushBack(shader);
-  
-  return shader;
+  return CreateRef<MetalShader>((id<MTLDevice>)m_Device, desc);
 }
+
+Ref<PipelineState> MetalRenderDevice::CreatePipelineState(const PipelineStateDesc& desc)
+{
+  Ref<PipelineState> ps = CreateRef<MetalPipelineState>((id<MTLDevice>)m_Device, desc);
+  m_PipelineStates.PushBack(ps);
+  return ps;
+};
+
 
 } // namespace Neptune

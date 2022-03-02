@@ -14,6 +14,7 @@ public:
   void* GetQueue() noexcept { return m_Queue; }
   
   Ref<Shader> CreateShader(const ShaderDesc& desc);
+  Ref<PipelineState> CreatePipelineState(const PipelineStateDesc& desc);
   
 private:
   // For now, we are only using one queue. It may eventually be a good idea to use more.
@@ -21,7 +22,7 @@ private:
   void* m_Device;
   
   // We'll cache a reference to all resources to that we don't delete them until the device is shutdown.
-  DynamicArray<Ref<Shader>> m_Shaders;
+  DynamicArray<Ref<PipelineState>> m_PipelineStates;
 };
 
 } // namespace Neptune
