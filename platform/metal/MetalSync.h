@@ -1,8 +1,8 @@
 #pragma once
 #include "renderer/Sync.h"
 
-#include <Metal/MTLCommandBuffer.h>
-#include <Metal/MTLEvent.h>
+#import <Metal/MTLCommandBuffer.h>
+#import <Metal/MTLEvent.h>
 
 namespace Neptune
 {
@@ -11,7 +11,11 @@ namespace Neptune
 
 // Allows for GPU execution dependency. This is much
 // more useful between queues, however, it won't break
-// if used withing a single queue.
+// if used withing a single queue. The problem we run into
+// is that a signal scheduled after a wait will reach a deadlock.
+// If we schedule the signal before, the wait, since everything
+// is chronological, it's redundant. We won't rely on any synchronization
+// primitives until we use multiple queues.
 class MetalSemaphore final : public Semaphore
 {
 public:

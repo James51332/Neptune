@@ -15,10 +15,11 @@
 
 #include "metal/MetalRenderDevice.h"
 #include "metal/MetalSync.h"
+#include "metal/MetalShader.h"
 
-#include <Cocoa/Cocoa.h>
-#include <Metal/Metal.h>
-#include <QuartzCore/CAMetalLayer.h>
+#import <Cocoa/Cocoa.h>
+#import <Metal/Metal.h>
+#import <QuartzCore/CAMetalLayer.h>
 
 // ----- NeptuneWindowDelegate ---------
 
@@ -315,7 +316,7 @@ void MacWindow::SetDesc(const WindowDesc& desc)
 }
 
 // shader source
-const char* shaders = R"(
+const char* vertex = R"(
 #include <metal_stdlib>
 using namespace metal;
 
@@ -326,12 +327,13 @@ float3(0.5f, -0.5f, 0.0f),
 float3(-0.5f, -0.5f, 0.0f)
 };
 
-vertex float4 vertexShader(uint vertexID [[vertex_id]])
+vertex float4 vertexFunc(uint vertexID [[vertex_id]])
 {
 return float4(vertices[vertexID], 1);
-}
+})";
 
-fragment float4 fragmentShader(float4 in [[stage_in]])
+const char* fragment = R"(
+fragment float4 fragmentFunc(float4 in [[stage_in]])
 {
 // Return the interpolated color.
 return float4(1.0, 1.0, 1.0, 1.0);
@@ -358,18 +360,23 @@ void MacWindow::SetContext(const Ref<RenderContext>& ctx)
         
         id<CAMetalDrawable> drawable = [layer nextDrawable];
         
-        id<MTLLibrary> lib = [device newLibraryWithSource: @(shaders)
-                                                  options: nil
-                                                    error: nil];
-        
-        id<MTLFunction> vertexFunction = [lib newFunctionWithName: @"vertexShader"];
-        id<MTLFunction> fragmentFunction = [lib newFunctionWithName: @"fragmentShader"];
+				// Create Shader
+        Ref<Shader> shader;
+        {
+          ShaderDesc desc;
+          desc.vertexSrc = vertex;
+          desc.fragmentSrc = fragment;
+          shader = StaticRefCast<Shader>(dev->CreateShader(desc));
+        }
         
         // pipeline state. (shader + vertex layout)
         MTLRenderPipelineDescriptor* pipelineDesc = [MTLRenderPipelineDescriptor new];
         pipelineDesc.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
-        pipelineDesc.vertexFunction = vertexFunction;
-        pipelineDesc.fragmentFunction = fragmentFunction;
+        
+        // obtain the functions from the shader.
+        Ref<MetalShader> metalShader = StaticRefCast<MetalShader>(shader);
+        pipelineDesc.vertexFunction = metalShader->GetVertexFunction();
+        pipelineDesc.fragmentFunction = metalShader->GetFragmentFunction();
         
         id<MTLRenderPipelineState> state = [device newRenderPipelineStateWithDescriptor: pipelineDesc
                                                                                   error: nil];
@@ -394,9 +401,6 @@ void MacWindow::SetContext(const Ref<RenderContext>& ctx)
         [buf commit];
         [buf waitUntilCompleted];
         
-        [lib release];
-        [vertexFunction release];
-        [fragmentFunction release];
         [pipelineDesc release];
         [state release];
       }

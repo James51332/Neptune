@@ -1,7 +1,7 @@
 #include "neptunepch.h"
 #include "MacApplication.h"
 
-#include <Cocoa/Cocoa.h>
+#import <Cocoa/Cocoa.h>
 
 @interface NeptuneDelegate : NSObject<NSApplicationDelegate>
 @end

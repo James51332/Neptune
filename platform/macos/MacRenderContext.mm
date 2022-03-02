@@ -3,9 +3,9 @@
 
 #include "metal/MetalRenderDevice.h"
 
-#include <Cocoa/Cocoa.h>
-#include <Metal/Metal.h>
-#include <QuartzCore/CAMetalLayer.h>
+#import <Cocoa/Cocoa.h>
+#import <Metal/Metal.h>
+#import <QuartzCore/CAMetalLayer.h>
 
 namespace Neptune
 {
