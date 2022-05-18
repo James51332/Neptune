@@ -2,6 +2,7 @@
 #include "MacRenderContext.h"
 
 #include "metal/MetalRenderDevice.h"
+#include "metal/MetalSwapchain.h"
 
 #import <Cocoa/Cocoa.h>
 #import <Metal/Metal.h>
@@ -34,9 +35,13 @@ MacRenderContext::~MacRenderContext()
 MacMetalRenderContext::MacMetalRenderContext()
 {
   m_API = RenderAPI::Metal;
-  m_Device = CreateRef<MetalRenderDevice>();
+  Ref<MetalRenderDevice> device = CreateRef<MetalRenderDevice>();
+  
+  m_Device = device;
   m_Layer = [CAMetalLayer layer];
-  ((CAMetalLayer*)m_Layer).device = (id<MTLDevice>)((MetalRenderDevice*)m_Device.Raw())->GetDevice();
+  ((CAMetalLayer*)m_Layer).device = (id<MTLDevice>)device->GetDevice();
+  
+  m_Swapchain = CreateRef<MetalSwapchain>((id<MTLDevice>)device->GetDevice(), (CAMetalLayer*)m_Layer);
 }
 
 MacMetalRenderContext::~MacMetalRenderContext()

@@ -17,6 +17,7 @@
 #include "metal/MetalSync.h"
 #include "metal/MetalShader.h"
 #include "metal/MetalPipelineState.h"
+#include "metal/MetalSwapchain.h"
 
 #import <Cocoa/Cocoa.h>
 #import <Metal/Metal.h>
@@ -354,11 +355,11 @@ void MacWindow::SetContext(const Ref<RenderContext>& ctx)
       // file. This is a convenient spot to do that in the mean time.
       @autoreleasepool {
         Ref<MetalRenderDevice> dev = StaticRefCast<MetalRenderDevice>(context->GetRenderDevice());
-        CAMetalLayer* layer = (CAMetalLayer*)context->GetLayer();
         
         id<MTLCommandQueue> queue = (id<MTLCommandQueue>)dev->GetQueue();
         
-        id<CAMetalDrawable> drawable = [layer nextDrawable];
+        Ref<Swapchain> swapchain = context->GetSwapchain();
+        Ref<Framebuffer> framebuffer = swapchain->GetNextFramebuffer();
         
 				// Create Shader
         Ref<Shader> shader;
@@ -380,7 +381,7 @@ void MacWindow::SetContext(const Ref<RenderContext>& ctx)
         id<MTLCommandBuffer> buf = [queue commandBuffer];
 
         MTLRenderPassDescriptor *renderPassDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
-        renderPassDescriptor.colorAttachments[0].texture = drawable.texture;
+        renderPassDescriptor.colorAttachments[0].texture = StaticRefCast<MetalFramebuffer>(framebuffer)->GetDrawable().texture;
         renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0.0,0.0,0.0,1.0);
         id<MTLRenderCommandEncoder> encoder = [buf renderCommandEncoderWithDescriptor: renderPassDescriptor];
@@ -391,11 +392,11 @@ void MacWindow::SetContext(const Ref<RenderContext>& ctx)
                     vertexCount: 3];
 
         [encoder endEncoding];
-
-        [buf presentDrawable: drawable];
         
         [buf commit];
-        [buf waitUntilCompleted];
+        
+        [buf waitUntilCompleted]; // This will not be how the final system works because we don't want to block.
+        swapchain->Present(framebuffer);
       }
       break;
       
