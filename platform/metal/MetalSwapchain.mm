@@ -15,8 +15,8 @@ id<CAMetalDrawable> MetalFramebuffer::GetDrawable()
 {
   if (m_Available)
   {
-    m_Drawable = [m_Layer nextDrawable];
-    m_Available = false;
+    m_Drawable = [[m_Layer nextDrawable] retain];
+    m_Available = false; // TODO: Thread safety.
   }
   
   return m_Drawable;
@@ -24,17 +24,21 @@ id<CAMetalDrawable> MetalFramebuffer::GetDrawable()
 
 void MetalFramebuffer::Present()
 {
-  // TODO: Present via commandbuffer is usually better
-  [m_Drawable present];
-  m_Drawable = nil;
+  @autoreleasepool
+  {
+  	// TODO: Present via commandbuffer is usually better
+  	[m_Drawable present];
   
-  m_Available = true;
+    [m_Drawable release];
+  	m_Drawable = nil;
+  	m_Available = true;
+  }
 }
 
 // ----- MetalSwapchain -----------------
 
 MetalSwapchain::MetalSwapchain(id<MTLDevice> device, CAMetalLayer* layer)
-	: m_Layer([layer retain])
+	: m_Layer(layer)
 {
   constexpr Size numImages = 3;
   for (Size i = 0; i < numImages; i++)
@@ -45,7 +49,6 @@ MetalSwapchain::MetalSwapchain(id<MTLDevice> device, CAMetalLayer* layer)
 
 MetalSwapchain::~MetalSwapchain()
 {
-  [m_Layer release];
   m_Layer = nil;
 }
 

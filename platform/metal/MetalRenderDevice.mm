@@ -3,6 +3,8 @@
 
 #include "MetalShader.h"
 #include "MetalPipelineState.h"
+#include "MetalRenderCommand.h"
+#include "MetalCommandBuffer.h"
 
 #import <Metal/MTLDevice.h>
 #import <Metal/MTLCommandQueue.h>
@@ -12,14 +14,27 @@ namespace Neptune
 
 MetalRenderDevice::MetalRenderDevice()
 {
-  m_Device = MTLCreateSystemDefaultDevice(); // retained
-  m_Queue = [((id<MTLDevice>)m_Device) newCommandQueue];
+  @autoreleasepool
+  {
+  	m_Device = MTLCreateSystemDefaultDevice(); // retained
+  	m_Queue = [((id<MTLDevice>)m_Device) newCommandQueue];
+  	m_Registry = CreateRef<MetalCommandBufferRegistry>((id<MTLCommandQueue>)m_Queue);
+  	m_Encoder = CreateRef<MetalRenderCommandEncoder>((id<MTLDevice>)m_Device, m_Registry);
+  }
 }
 
 MetalRenderDevice::~MetalRenderDevice()
 {
-  [(id<MTLDevice>)m_Device release]; // retained
-  [(id<MTLCommandQueue>)m_Queue release];
+  @autoreleasepool
+  {
+  	[(id<MTLDevice>)m_Device release]; // retained
+  	[(id<MTLCommandQueue>)m_Queue release];
+  }
+}
+
+Ref<RenderCommandEncoder> MetalRenderDevice::GetEncoder() noexcept
+{
+  return m_Encoder;
 }
 
 Ref<Shader> MetalRenderDevice::CreateShader(const ShaderDesc& desc)
@@ -34,5 +49,9 @@ Ref<PipelineState> MetalRenderDevice::CreatePipelineState(const PipelineStateDes
   return ps;
 };
 
+void MetalRenderDevice::Submit(CommandBuffer buffer)
+{
+  m_Registry->Commit(buffer);
+}
 
 } // namespace Neptune

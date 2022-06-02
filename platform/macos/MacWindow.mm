@@ -14,10 +14,6 @@
 #include "core/KeyEvent.h"
 
 #include "metal/MetalRenderDevice.h"
-#include "metal/MetalSync.h"
-#include "metal/MetalShader.h"
-#include "metal/MetalPipelineState.h"
-#include "metal/MetalSwapchain.h"
 
 #import <Cocoa/Cocoa.h>
 #import <Metal/Metal.h>
@@ -317,30 +313,6 @@ void MacWindow::SetDesc(const WindowDesc& desc)
   [window setContentSize: NSMakeSize(desc.Width, desc.Height)];
 }
 
-// shader source
-const char* vertex = R"(
-#include <metal_stdlib>
-using namespace metal;
-
-constant float3 vertices[] =
-{
-float3(0.0f, 0.5f, 0.0f),
-float3(0.5f, -0.5f, 0.0f),
-float3(-0.5f, -0.5f, 0.0f)
-};
-
-vertex float4 vertexFunc(uint vertexID [[vertex_id]])
-{
-return float4(vertices[vertexID], 1);
-})";
-
-const char* fragment = R"(
-fragment float4 fragmentFunc(float4 in [[stage_in]])
-{
-// Return the interpolated color.
-return float4(1.0, 1.0, 1.0, 1.0);
-})";
-
 void MacWindow::SetContext(const Ref<RenderContext>& ctx)
 {
   RenderAPI api = ctx->GetAPI();
@@ -350,56 +322,7 @@ void MacWindow::SetContext(const Ref<RenderContext>& ctx)
     case RenderAPI::Metal: {
       Ref<MacMetalRenderContext> context = StaticRefCast<MacMetalRenderContext>(ctx);
       ((NeptuneView*)m_View).layer = (CAMetalLayer*)context->GetLayer();
-      
-      // Until we abstract all of the primitives into c++, we need to interface in an objective-c++
-      // file. This is a convenient spot to do that in the mean time.
-      @autoreleasepool {
-        Ref<MetalRenderDevice> dev = StaticRefCast<MetalRenderDevice>(context->GetRenderDevice());
-        
-        id<MTLCommandQueue> queue = (id<MTLCommandQueue>)dev->GetQueue();
-        
-        Ref<Swapchain> swapchain = context->GetSwapchain();
-        Ref<Framebuffer> framebuffer = swapchain->GetNextFramebuffer();
-        
-				// Create Shader
-        Ref<Shader> shader;
-        {
-          ShaderDesc desc;
-          desc.vertexSrc = vertex;
-          desc.fragmentSrc = fragment;
-          shader = dev->CreateShader(desc);
-        }
-        
-        // Create Pipeline State
-        Ref<PipelineState> pipeline;
-        {
-          PipelineStateDesc desc;
-          desc.Shader = shader;
-          pipeline = dev->CreatePipelineState(desc);
-        }
-        
-        id<MTLCommandBuffer> buf = [queue commandBuffer];
-
-        MTLRenderPassDescriptor *renderPassDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
-        renderPassDescriptor.colorAttachments[0].texture = StaticRefCast<MetalFramebuffer>(framebuffer)->GetDrawable().texture;
-        renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
-        renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0.0,0.0,0.0,1.0);
-        id<MTLRenderCommandEncoder> encoder = [buf renderCommandEncoderWithDescriptor: renderPassDescriptor];
-
-        [encoder setRenderPipelineState: StaticRefCast<MetalPipelineState>(pipeline)->GetPipelineState()];
-        [encoder drawPrimitives: MTLPrimitiveTypeTriangle
-                    vertexStart: 0
-                    vertexCount: 3];
-
-        [encoder endEncoding];
-        
-        [buf commit];
-        
-        [buf waitUntilCompleted]; // This will not be how the final system works because we don't want to block.
-        swapchain->Present(framebuffer);
-      }
       break;
-      
     }
     case RenderAPI::Vulkan: { NEPTUNE_ASSERT(false, "Unsupported RenderAPI on this platform!"); return; }
     case RenderAPI::DirectX: { NEPTUNE_ASSERT(false, "Unsupported RenderAPI on this platform!"); return; }

@@ -14,7 +14,10 @@ MetalSemaphore::MetalSemaphore(id<MTLDevice> device, const SemaphoreDesc& desc)
 
 MetalSemaphore::~MetalSemaphore()
 {
-  [m_Event release]; // retained
+  @autoreleasepool
+  {
+		[m_Event release]; // retained
+  }
 }
 
 // ----- Design -----------------

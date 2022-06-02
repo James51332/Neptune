@@ -4,6 +4,8 @@
 #include "metal/MetalRenderDevice.h"
 #include "metal/MetalSwapchain.h"
 
+#include "renderer/RenderCommand.h"
+
 #import <Cocoa/Cocoa.h>
 #import <Metal/Metal.h>
 #import <QuartzCore/CAMetalLayer.h>
@@ -38,6 +40,8 @@ MacMetalRenderContext::MacMetalRenderContext()
   Ref<MetalRenderDevice> device = CreateRef<MetalRenderDevice>();
   
   m_Device = device;
+  RenderCommand::OnInit(m_Device);
+  
   m_Layer = [CAMetalLayer layer];
   ((CAMetalLayer*)m_Layer).device = (id<MTLDevice>)device->GetDevice();
   
@@ -46,7 +50,7 @@ MacMetalRenderContext::MacMetalRenderContext()
 
 MacMetalRenderContext::~MacMetalRenderContext()
 {
-  
+  RenderCommand::OnTerminate();
 }
 
 } // namespace Neptune

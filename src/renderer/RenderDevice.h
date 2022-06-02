@@ -2,6 +2,7 @@
 
 #include "Shader.h"
 #include "PipelineState.h"
+#include "RenderCommand.h"
 
 namespace Neptune
 {
@@ -11,8 +12,12 @@ class RenderDevice
 public:
   virtual ~RenderDevice();
   
+  virtual Ref<RenderCommandEncoder> GetEncoder() = 0;
+  
   virtual Ref<Shader> CreateShader(const ShaderDesc& desc) = 0;
   virtual Ref<PipelineState> CreatePipelineState(const PipelineStateDesc& desc) = 0;
+  
+  virtual void Submit(CommandBuffer buffer) = 0;
 };
 
 } // namespace Neptune
