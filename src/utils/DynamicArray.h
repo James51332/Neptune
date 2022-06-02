@@ -52,10 +52,10 @@ public:
   Iterator end() noexcept { return m_Array + m_Size; }
   Iterator rbegin() noexcept { return m_Array + m_Size; }
   Iterator rend() noexcept { return m_Array; }
-  ConstIterator cbegin() const noexcept { return m_Array; }
-  ConstIterator cend() const noexcept { return m_Array + m_Size; }
-  ConstIterator crbegin() const noexcept { return m_Array + m_Size; }
-  ConstIterator crend() const noexcept { return m_Array; }
+  ConstIterator begin() const noexcept { return m_Array; }
+  ConstIterator end() const noexcept { return m_Array + m_Size; }
+  ConstIterator rbegin() const noexcept { return m_Array + m_Size; }
+  ConstIterator rend() const noexcept { return m_Array; }
   
 private:
   Neptune::Size NextSize() const noexcept;
@@ -74,10 +74,13 @@ DynamicArray<T>::DynamicArray() noexcept
 
 template <typename T>
 DynamicArray<T>::DynamicArray(Neptune::Size size)
-: m_Size(0), m_Capacity(size), m_Array(nullptr)
+: m_Size(size), m_Capacity(size), m_Array(nullptr)
 {
   if (size == 0) return;
   m_Array = (T*) ::operator new(m_Capacity * sizeof(T));
+  
+  for (Neptune::Size i = 0; i < size; i++)
+    ::new (m_Array + i) T();
 }
 
 template <typename T>
