@@ -13,13 +13,16 @@ MetalFramebuffer::MetalFramebuffer(id<MTLDevice> device, CAMetalLayer* layer)
 
 id<CAMetalDrawable> MetalFramebuffer::GetDrawable()
 {
-  if (m_Available)
+  @autoreleasepool
   {
-    m_Drawable = [[m_Layer nextDrawable] retain];
-    m_Available = false; // TODO: Thread safety.
-  }
+  	if (m_Available)
+  	{
+  	  m_Drawable = [[m_Layer nextDrawable] retain];
+  	  m_Available = false; // TODO: Thread safety.
+  	}
   
-  return m_Drawable;
+  	return m_Drawable;
+  }
 }
 
 void MetalFramebuffer::Present()

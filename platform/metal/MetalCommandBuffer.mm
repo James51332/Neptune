@@ -22,22 +22,25 @@ MetalCommandBufferRegistry::~MetalCommandBufferRegistry()
 
 void MetalCommandBufferRegistry::Register(CommandBuffer& buffer)
 {
-  id<MTLCommandBuffer> buf = [m_Queue commandBuffer];
-  Size ID;
-  
-  // If there is free memory in the array, use it. Otherwise, push it to the back.
-  if (!m_Open.Empty())
+  @autoreleasepool
   {
-    ID = m_Open[m_Open.Size() - 1];
-    m_Registry[ID] = buf;
-    m_Open.PopBack();
-  } else
-  {
-    ID = m_Registry.Size();
-    m_Registry.PushBack(buf);
+  	id<MTLCommandBuffer> buf = [[m_Queue commandBuffer] retain];
+  	Size ID;
+  	
+  	// If there is free memory in the array, use it. Otherwise, push it to the back.
+  	if (!m_Open.Empty())
+  	{
+  	  ID = m_Open[m_Open.Size() - 1];
+  	  m_Registry[ID] = buf;
+  	  m_Open.PopBack();
+  	} else
+  	{
+  	  ID = m_Registry.Size();
+  	  m_Registry.PushBack(buf);
+  	}
+  	
+  	buffer.ID = ID;
   }
-  
-  buffer.ID = ID;
 }
 
 id<MTLCommandBuffer> MetalCommandBufferRegistry::Get(CommandBuffer buffer)
@@ -63,6 +66,7 @@ void MetalCommandBufferRegistry::Free(CommandBuffer buffer)
   @autoreleasepool
   {
   	// Release old buffer
+    [m_Registry[buffer.ID] release];
   	m_Registry[buffer.ID] = nil;
   	
   	// There is free space in array that can now be written to.

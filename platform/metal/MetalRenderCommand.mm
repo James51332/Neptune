@@ -79,15 +79,21 @@ void MetalRenderCommandEncoder::EndRenderPass()
 void MetalRenderCommandEncoder::SetPipelineState(const Ref<PipelineState>& state)
 {
   NEPTUNE_ASSERT(m_RenderPass, "Begin RenderPass before setting pipeline state!");
-  [m_ActiveRenderEncoder setRenderPipelineState:StaticRefCast<MetalPipelineState>(state)->GetPipelineState()];
+  @autoreleasepool
+  {
+    [m_ActiveRenderEncoder setRenderPipelineState:StaticRefCast<MetalPipelineState>(state)->GetPipelineState()];
+  }
 }
 
 void MetalRenderCommandEncoder::DrawTriangles(Size start, Size count)
 {
   NEPTUNE_ASSERT(m_RenderPass, "Begin RenderPass before drawing");
-  [m_ActiveRenderEncoder drawPrimitives: MTLPrimitiveTypeTriangle
+  @autoreleasepool
+  {
+  	[m_ActiveRenderEncoder drawPrimitives: MTLPrimitiveTypeTriangle
                             vertexStart: start
                             vertexCount: count];
+  }
 }
 
 } // namespace Neptune
