@@ -128,14 +128,14 @@ DynamicArray<T>::~DynamicArray() noexcept
 template <typename T>
 T& DynamicArray<T>::operator[](Neptune::Size index) noexcept
 {
-  // TODO: Debug asserts
+  NEPTUNE_ASSERT(index < m_Size, "Index out of bounds!");
   return m_Array[index];
 }
 
 template <typename T>
 const T& DynamicArray<T>::operator[](Neptune::Size index) const noexcept
 {
-  // TODO: Debug asserts
+  NEPTUNE_ASSERT(index < m_Size, "Index out of bounds!");
   return m_Array[index];
 }
 
