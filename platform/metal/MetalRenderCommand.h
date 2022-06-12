@@ -26,8 +26,9 @@ public:
   void EndRenderPass();
   
   void SetPipelineState(const Ref<PipelineState>& state);
+  void SetVertexBuffer(const Ref<Buffer>& buffer, Size index);
   
-  void DrawTriangles(Size start, Size count);
+  void Submit(const DrawCommandDesc& desc);
   
 private:
   id<MTLDevice> m_Device;

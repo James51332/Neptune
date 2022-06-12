@@ -5,6 +5,7 @@
 #include "MetalPipelineState.h"
 #include "MetalRenderCommand.h"
 #include "MetalCommandBuffer.h"
+#include "MetalBuffer.h"
 
 #import <Metal/MTLDevice.h>
 #import <Metal/MTLCommandQueue.h>
@@ -48,6 +49,13 @@ Ref<PipelineState> MetalRenderDevice::CreatePipelineState(const PipelineStateDes
   m_PipelineStates.PushBack(ps);
   return ps;
 };
+
+Ref<Buffer> MetalRenderDevice::CreateBuffer(const BufferDesc &desc)
+{
+  Ref<Buffer> buffer = CreateRef<MetalBuffer>((id<MTLDevice>)m_Device, desc);
+  m_Buffers.PushBack(buffer);
+  return buffer;
+}
 
 void MetalRenderDevice::Submit(CommandBuffer buffer)
 {

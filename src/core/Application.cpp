@@ -30,6 +30,9 @@ Application::Application(const WindowDesc& desc)
   
   m_RenderContext = RenderContext::Create();
   m_Window->SetContext(m_RenderContext);
+  
+  m_RenderDevice = m_RenderContext->GetRenderDevice();
+  m_Swapchain = m_RenderContext->GetSwapchain();
 }
 
 Application::~Application()
@@ -42,23 +45,35 @@ const char* vertex = R"(
 #include <metal_stdlib>
 using namespace metal;
 
-constant float3 vertices[] =
+struct Out
 {
-float3(0.0f, 0.5f, 0.0f),
-float3(0.5f, -0.5f, 0.0f),
-float3(-0.5f, -0.5f, 0.0f)
+	float4 position [[position]];
+	float4 color;
 };
 
-vertex float4 vertexFunc(uint vertexID [[vertex_id]])
+vertex Out vertexFunc(const device packed_float3* vertices [[buffer(0)]],
+                         uint vertexID [[vertex_id]])
 {
-return float4(vertices[vertexID], 1);
+	Out out;
+	out.position = float4(vertices[vertexID], 1);
+	out.color = float4(2 * vertices[vertexID].xy, 1, 1);
+	return out;
 })";
 
 const char* fragment = R"(
-fragment float4 fragmentFunc(float4 in [[stage_in]])
+#include <metal_stdlib>
+using namespace metal;
+
+struct Out
 {
-// Return the interpolated color.
-return float4(1.0, 1.0, 1.0, 1.0);
+  float4 position [[position]];
+  float4 color;
+};
+
+fragment float4 fragmentFunc(Out in [[stage_in]])
+{
+	// Return the interpolated color.
+	return in.color;
 })";
 
 
@@ -74,7 +89,7 @@ void Application::Run()
     ShaderDesc desc;
     desc.vertexSrc = vertex;
     desc.fragmentSrc = fragment;
-    shader = m_RenderContext->GetRenderDevice()->CreateShader(desc);
+    shader = m_RenderDevice->CreateShader(desc);
   }
   
   // Create Pipeline State
@@ -82,7 +97,51 @@ void Application::Run()
   {
     PipelineStateDesc desc;
     desc.Shader = shader;
-    pipeline = m_RenderContext->GetRenderDevice()->CreatePipelineState(desc);
+    pipeline = m_RenderDevice->CreatePipelineState(desc);
+  }
+  
+  // Create Vertex Buffer
+  Ref<Buffer> vertexBuffer;
+  {
+    const Float32 data[] = {
+      0.0f, 0.5f, 0.0f,
+      0.5f, -0.5f, 0.0f,
+      -0.5f, -0.5f, 0.0f
+    };
+    
+    BufferDesc desc;
+    desc.Type = BufferType::Vertex;
+    desc.Usage = BufferUsage::Static;
+    desc.Size = sizeof(data);
+    desc.Data = (void*)data;
+    vertexBuffer = m_RenderDevice->CreateBuffer(desc);
+  }
+  
+  // Create index buffer
+  Ref<Buffer> indexBuffer;
+  {
+    const UInt16 data[] = {
+    	0, 1, 2
+    };
+    
+    BufferDesc desc;
+    desc.Type = BufferType::Index;
+    desc.Usage = BufferUsage::Static;
+    desc.Size = sizeof(data);
+    desc.Data = (void*)data;
+    indexBuffer = m_RenderDevice->CreateBuffer(desc);
+  }
+  
+  // Create draw command desc (can be reused, since the same for each call)
+  DrawCommandDesc drawCmd;
+  {
+    drawCmd.Indexed = true;
+    drawCmd.IndexBuffer = indexBuffer;
+    drawCmd.IndexType = IndexType::UInt16;
+    
+    drawCmd.Type = PrimitiveType::Triangle;
+    drawCmd.Offset = 0;
+    drawCmd.Count = 3;
   }
   
   m_Running = true;
@@ -99,13 +158,11 @@ void Application::Run()
         Stop();
         return true;
       });
-    } 
+    }
     
     // Render
     {
-      Ref<RenderDevice> device = m_RenderContext->GetRenderDevice();
-      Ref<Swapchain> swapchain = m_RenderContext->GetSwapchain();
-      Ref<Framebuffer> framebuffer = swapchain->GetNextFramebuffer();
+      Ref<Framebuffer> framebuffer = m_Swapchain->GetNextFramebuffer();
       
       CommandBuffer commandBuffer;
       RenderCommand::BeginRecording(commandBuffer);
@@ -118,15 +175,17 @@ void Application::Run()
         }
         RenderCommand::BeginRenderPass(renderPass);
         
+        RenderCommand::SetVertexBuffer(vertexBuffer, 0);
         RenderCommand::SetPipelineState(pipeline);
-        RenderCommand::DrawTriangles(0, 3);
+        
+        RenderCommand::Submit(drawCmd);
         
         RenderCommand::EndRenderPass();
       }
       RenderCommand::EndRecording();
       
-      device->Submit(commandBuffer);
-      swapchain->Present(framebuffer);
+      m_RenderDevice->Submit(commandBuffer);
+      m_Swapchain->Present(framebuffer);
     }
   }
   

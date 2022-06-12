@@ -12,8 +12,6 @@
 namespace Neptune
 {
 
-// We could write our own logger for the AP project if needed but for now this should
-// get us going. It's fast, thread-safe,
 class Logger
 {
 public:

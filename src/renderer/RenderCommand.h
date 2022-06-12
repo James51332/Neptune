@@ -3,11 +3,44 @@
 #include "CommandBuffer.h"
 #include "RenderPass.h"
 #include "PipelineState.h"
+#include "Buffer.h"
 
 namespace Neptune
 {
 
 class RenderDevice;
+
+// ----- DrawCommandDesc -----------------
+
+enum class IndexType
+{
+	UInt16,
+  UInt32
+};
+
+enum class PrimitiveType
+{
+  Triangle,
+  TriangleStrip,
+  Line,
+  LineStrip,
+  Point
+};
+
+// TODO: Instancing
+struct DrawCommandDesc
+{
+  bool Indexed = false;
+  
+  // Only for indexed
+  Ref<Buffer> IndexBuffer;
+  IndexType IndexType;
+  
+  // Used regardless
+  PrimitiveType Type;
+  Size Offset;
+  Size Count;
+};
 
 // ----- RenderCommand -----------------
 
@@ -25,8 +58,9 @@ public:
   virtual void EndRenderPass() = 0;
   
   virtual void SetPipelineState(const Ref<PipelineState>& state) = 0;
+  virtual void SetVertexBuffer(const Ref<Buffer>& buffer, Size index) = 0;
   
-  virtual void DrawTriangles(Size start, Size count) = 0;
+  virtual void Submit(const DrawCommandDesc& desc) = 0;
 };
 
 // ----- RenderCommand -----------------
@@ -48,8 +82,9 @@ public:
   static void EndRenderPass();
   
   static void SetPipelineState(const Ref<PipelineState>& state);
+  static void SetVertexBuffer(const Ref<Buffer>& buffer, Size index);
   
-  static void DrawTriangles(Size start, Size count);
+  static void Submit(const DrawCommandDesc& desc);
   
 private:
   static Ref<RenderCommandEncoder> s_Encoder;

@@ -3,6 +3,8 @@
 #include "utils/Types.h"
 #include "utils/Utils.h"
 
+#include "core/Assert.h"
+
 #include <new>
 
 namespace Neptune
@@ -19,7 +21,6 @@ public:
   using ConstIterator = const T*;
   
 public:
-  
   DynamicArray() noexcept;
   DynamicArray(Neptune::Size size);
   DynamicArray(const DynamicArray& other);

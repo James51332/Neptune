@@ -39,6 +39,8 @@ private:
   Scope<NativeApplication> m_NativeApp;
   Scope<Window> m_Window;
   Ref<RenderContext> m_RenderContext;
+  Ref<RenderDevice> m_RenderDevice;
+  Ref<Swapchain> m_Swapchain;
 };
 
 } // namespace Neptune

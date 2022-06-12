@@ -44,9 +44,14 @@ void RenderCommand::SetPipelineState(const Ref<PipelineState>& state)
   s_Encoder->SetPipelineState(state);
 }
 
-void RenderCommand::DrawTriangles(Size start, Size count)
+void RenderCommand::SetVertexBuffer(const Ref<Buffer>& buffer, Size index)
 {
-  s_Encoder->DrawTriangles(start, count);
+  s_Encoder->SetVertexBuffer(buffer, index);
+}
+
+void RenderCommand::Submit(const DrawCommandDesc& desc)
+{
+  s_Encoder->Submit(desc);
 }
 
 } // namespace Neptune

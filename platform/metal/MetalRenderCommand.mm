@@ -3,6 +3,7 @@
 
 #include "MetalSwapchain.h"
 #include "MetalPipelineState.h"
+#include "MetalBuffer.h"
 
 namespace Neptune
 {
@@ -85,14 +86,60 @@ void MetalRenderCommandEncoder::SetPipelineState(const Ref<PipelineState>& state
   }
 }
 
-void MetalRenderCommandEncoder::DrawTriangles(Size start, Size count)
+void MetalRenderCommandEncoder::SetVertexBuffer(const Ref<Buffer> &buffer, Size index)
+{
+	NEPTUNE_ASSERT(m_RenderPass && (buffer->GetType() == BufferType::Vertex), "Unable to bind buffer as vertex buffer!");
+  @autoreleasepool
+  {
+    [m_ActiveRenderEncoder setVertexBuffer: StaticRefCast<MetalBuffer>(buffer)->GetBuffer()
+                                    offset: 0
+                                   atIndex: index];
+  }
+}
+
+static MTLPrimitiveType MTLPrimitveTypeFromPrimitiveType(PrimitiveType type) noexcept
+{
+  switch (type)
+  {
+    case PrimitiveType::Triangle: return MTLPrimitiveTypeTriangle;
+    case PrimitiveType::TriangleStrip: return MTLPrimitiveTypeTriangleStrip;
+    case PrimitiveType::Line: return MTLPrimitiveTypeLine;
+    case PrimitiveType::LineStrip: return MTLPrimitiveTypeLineStrip;
+    case PrimitiveType::Point: return MTLPrimitiveTypePoint;
+    default: return MTLPrimitiveTypeTriangle;
+  }
+}
+
+static MTLIndexType MTLIndexTypeFromIndexType(IndexType type) noexcept
+{
+  switch (type)
+  {
+    case IndexType::UInt16: return MTLIndexTypeUInt16;
+    case IndexType::UInt32: return MTLIndexTypeUInt32;
+    default: return MTLIndexTypeUInt32;
+  }
+}
+
+void MetalRenderCommandEncoder::Submit(const DrawCommandDesc &desc)
 {
   NEPTUNE_ASSERT(m_RenderPass, "Begin RenderPass before drawing");
   @autoreleasepool
   {
-  	[m_ActiveRenderEncoder drawPrimitives: MTLPrimitiveTypeTriangle
-                            vertexStart: start
-                            vertexCount: count];
+    if (!desc.Indexed)
+    {
+      [m_ActiveRenderEncoder drawPrimitives: MTLPrimitveTypeFromPrimitiveType(desc.Type)
+                                vertexStart: desc.Offset
+                                vertexCount: desc.Count];
+    } else
+    {
+      NEPTUNE_ASSERT(desc.IndexBuffer->GetType() == BufferType::Index, "Unable to use index buffer!");
+      
+      [m_ActiveRenderEncoder drawIndexedPrimitives: MTLPrimitveTypeFromPrimitiveType(desc.Type)
+                                        indexCount: desc.Count
+                                         indexType: MTLIndexTypeFromIndexType(desc.IndexType)
+                                       indexBuffer: StaticRefCast<MetalBuffer>(desc.IndexBuffer)->GetBuffer()
+                                 indexBufferOffset: desc.Offset];
+    }
   }
 }
 

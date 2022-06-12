@@ -19,6 +19,7 @@ public:
   
   Ref<Shader> CreateShader(const ShaderDesc& desc);
   Ref<PipelineState> CreatePipelineState(const PipelineStateDesc& desc);
+  Ref<Buffer> CreateBuffer(const BufferDesc& desc);
   
   void Submit(CommandBuffer buffer);
   
@@ -32,6 +33,7 @@ private:
   
   // We'll cache a reference to all resources to that we don't delete them until the device is shutdown.
   DynamicArray<Ref<PipelineState>> m_PipelineStates;
+  DynamicArray<Ref<Buffer>> m_Buffers;
 };
 
 } // namespace Neptune
