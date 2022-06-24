@@ -1,6 +1,7 @@
 #pragma once
 
 #include "utils/Types.h"
+#include "utils/InitializerList.h"
 #include "utils/Utils.h"
 
 #include "core/Assert.h"
@@ -25,6 +26,7 @@ public:
   DynamicArray(Neptune::Size size);
   DynamicArray(const DynamicArray& other);
   DynamicArray(DynamicArray&& other) noexcept;
+  DynamicArray(InitializerList<T> other);
   
   DynamicArray& operator=(DynamicArray other) noexcept;
   
@@ -104,10 +106,21 @@ DynamicArray<T>::DynamicArray(const DynamicArray<T>& other)
 
 template <typename T>
 DynamicArray<T>::DynamicArray(DynamicArray<T>&& other) noexcept
+	: m_Size(0), m_Capacity(0), m_Array(nullptr)
 {
   Swap(m_Size, other.m_Size);
   Swap(m_Capacity, other.m_Capacity);
   Swap(m_Array, other.m_Array);
+}
+
+template <typename T>
+DynamicArray<T>::DynamicArray(InitializerList<T> other)
+	: m_Size(0), m_Capacity(other.size()), m_Array(nullptr)
+{
+  m_Array = (T*) ::operator new(m_Capacity * sizeof(T));
+  
+  for (auto& val : other)
+    new (&m_Array[m_Size++]) T(val);
 }
 
 template <typename T>
