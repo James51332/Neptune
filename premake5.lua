@@ -35,6 +35,9 @@ project "Neptune"
 		"src/**.cpp",
 		"src/**.h",
 		"include/**.h",
+   	"thirdparty/**.h",
+    "thirdparty/**.inl",
+    "thirdparty/**.hpp",
   	"pch/neptunepch.h",
    	"pch/neptunepch.cpp"
 	}
