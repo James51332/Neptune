@@ -97,7 +97,7 @@ void MetalRenderCommandEncoder::SetVertexBuffer(const Ref<Buffer> &buffer, Size 
   }
 }
 
-static MTLPrimitiveType MTLPrimitveTypeFromPrimitiveType(PrimitiveType type) noexcept
+static MTLPrimitiveType MTLPrimitiveTypeFromPrimitiveType(PrimitiveType type) noexcept
 {
   switch (type)
   {
@@ -127,14 +127,15 @@ void MetalRenderCommandEncoder::Submit(const DrawCommandDesc &desc)
   {
     if (!desc.Indexed)
     {
-      [m_ActiveRenderEncoder drawPrimitives: MTLPrimitveTypeFromPrimitiveType(desc.Type)
+      [m_ActiveRenderEncoder drawPrimitives: MTLPrimitiveTypeFromPrimitiveType(desc.Type)
                                 vertexStart: desc.Offset
                                 vertexCount: desc.Count];
     } else
     {
       NEPTUNE_ASSERT(desc.IndexBuffer->GetType() == BufferType::Index, "Unable to use index buffer!");
       
-      [m_ActiveRenderEncoder drawIndexedPrimitives: MTLPrimitveTypeFromPrimitiveType(desc.Type)
+      [m_ActiveRenderEncoder setCullMode:MTLCullModeBack];
+      [m_ActiveRenderEncoder drawIndexedPrimitives: MTLPrimitiveTypeFromPrimitiveType(desc.Type)
                                         indexCount: desc.Count
                                          indexType: MTLIndexTypeFromIndexType(desc.IndexType)
                                        indexBuffer: StaticRefCast<MetalBuffer>(desc.IndexBuffer)->GetBuffer()
