@@ -134,7 +134,6 @@ void MetalRenderCommandEncoder::Submit(const DrawCommandDesc &desc)
     {
       NEPTUNE_ASSERT(desc.IndexBuffer->GetType() == BufferType::Index, "Unable to use index buffer!");
       
-      [m_ActiveRenderEncoder setCullMode:MTLCullModeBack];
       [m_ActiveRenderEncoder drawIndexedPrimitives: MTLPrimitiveTypeFromPrimitiveType(desc.Type)
                                         indexCount: desc.Count
                                          indexType: MTLIndexTypeFromIndexType(desc.IndexType)
