@@ -14,6 +14,7 @@
 #include "renderer/RenderPass.h"
 #include "renderer/CommandBuffer.h"
 #include "renderer/Shader.h"
+#include "renderer/Texture.h"
 
 namespace Neptune
 {
@@ -48,12 +49,14 @@ using namespace metal;
 struct VSInput
 {
 	float3 position [[attribute(0)]];
-	float4 color [[attribute(1)]];
+	float2 texCoord [[attribute(1)]];
+	float4 color [[attribute(2)]];
 };
 
 struct FSInput
 {
 	float4 position [[position]];
+	float2 texCoord;
 	float4 color;
 };
 
@@ -61,13 +64,16 @@ vertex FSInput vertexFunc(VSInput in [[stage_in]])
 {
 	FSInput out;
 	out.position = float4(in.position, 1);
-	out.color = float4(in.color);
+	out.texCoord = in.texCoord;
+	out.color = in.color;
 	return out;
 }
 
-fragment float4 fragmentFunc(FSInput in [[stage_in]])
+fragment float4 fragmentFunc(FSInput in [[stage_in]],
+                             texture2d<float> colorTexture [[texture(0)]])
 {
-  return in.color;
+ 	constexpr sampler textureSampler(mag_filter::linear, min_filter::linear);
+ 	return colorTexture.sample(textureSampler, in.texCoord) * in.color;
 })";
 
 
@@ -92,10 +98,10 @@ void Application::Run()
     PipelineStateDesc desc;
     desc.Shader = shader;
     desc.Layout = {
-        { PipelineAttributeType::Float3, "Position" },
-        { PipelineAttributeType::UChar4, "Color", true }
+      { PipelineAttributeType::Float3, "Position" },
+      { PipelineAttributeType::Float2, "TexCoord" },
+      { PipelineAttributeType::UChar4, "Color", true }
     };
-    
     pipeline = m_RenderDevice->CreatePipelineState(desc);
   }
   
@@ -105,14 +111,15 @@ void Application::Run()
     struct Vertex
     {
       Float3 position;
-      UInt32 color;
+      Float2 texCoord;
+      UInt32 color = 0xffffffff;
     };
     
     const Vertex data[] = {
-      {{-0.5f, -0.5f, 0.5f}, 0xffffffff},
-      {{ 0.5f, -0.5f, 0.5f}, 0xff0000ff},
-      {{ 0.5f,  0.5f, 0.5f}, 0xff00ff00},
-      {{-0.5f,  0.5f, 0.5f}, 0xffff0000}
+      {{-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f}},
+      {{ 0.5f, -0.5f, 0.5f}, {1.0f, 0.0f}},
+      {{ 0.5f,  0.5f, 0.5f}, {1.0f, 1.0f}},
+      {{-0.5f,  0.5f, 0.5f}, {0.0f, 1.0f}}
     };
     
     BufferDesc desc;
@@ -127,7 +134,6 @@ void Application::Run()
   Ref<Buffer> indexBuffer;
   {
     const UInt16 data[] = {
-      // front
       0, 1, 2,
       2, 3, 0,
     };
@@ -138,6 +144,12 @@ void Application::Run()
     desc.Size = sizeof(data);
     desc.Data = (void*)data;
     indexBuffer = m_RenderDevice->CreateBuffer(desc);
+  }
+  
+  // Load Texture
+  Ref<Texture> texture;
+  {
+    texture = m_RenderDevice->LoadTexture("resources/panda.png");
   }
   
   // Create draw command desc (can be reused, since the same for each call)
@@ -185,6 +197,7 @@ void Application::Run()
         
         RenderCommand::SetVertexBuffer(vertexBuffer, 0);
         RenderCommand::SetPipelineState(pipeline);
+        RenderCommand::BindTexture(texture, 0);
         
         RenderCommand::Submit(drawCmd);
         

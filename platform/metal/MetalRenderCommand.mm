@@ -4,6 +4,7 @@
 #include "MetalSwapchain.h"
 #include "MetalPipelineState.h"
 #include "MetalBuffer.h"
+#include "MetalTexture.h"
 
 namespace Neptune
 {
@@ -94,6 +95,16 @@ void MetalRenderCommandEncoder::SetVertexBuffer(const Ref<Buffer> &buffer, Size 
     [m_ActiveRenderEncoder setVertexBuffer: StaticRefCast<MetalBuffer>(buffer)->GetBuffer()
                                     offset: 0
                                    atIndex: index];
+  }
+}
+
+void MetalRenderCommandEncoder::BindTexture(const Ref<Texture>& texture, Size index)
+{
+  NEPTUNE_ASSERT(m_RenderPass, "Begin RenderPass before binding texture!");
+  @autoreleasepool
+  {
+    [m_ActiveRenderEncoder setFragmentTexture: StaticRefCast<MetalTexture>(texture)->GetTexture()
+                                      atIndex: index];
   }
 }
 

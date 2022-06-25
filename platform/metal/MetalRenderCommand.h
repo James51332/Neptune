@@ -28,6 +28,8 @@ public:
   void SetPipelineState(const Ref<PipelineState>& state);
   void SetVertexBuffer(const Ref<Buffer>& buffer, Size index);
   
+  void BindTexture(const Ref<Texture>& texture, Size index = 0);
+  
   void Submit(const DrawCommandDesc& desc);
   
 private:

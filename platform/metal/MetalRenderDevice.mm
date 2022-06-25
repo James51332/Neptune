@@ -6,9 +6,12 @@
 #include "MetalRenderCommand.h"
 #include "MetalCommandBuffer.h"
 #include "MetalBuffer.h"
+#include "MetalTexture.h"
 
 #import <Metal/MTLDevice.h>
 #import <Metal/MTLCommandQueue.h>
+
+#include <stb_image/stb_image.h>
 
 namespace Neptune
 {
@@ -55,6 +58,32 @@ Ref<Buffer> MetalRenderDevice::CreateBuffer(const BufferDesc &desc)
   Ref<Buffer> buffer = CreateRef<MetalBuffer>((id<MTLDevice>)m_Device, desc);
   m_Buffers.PushBack(buffer);
   return buffer;
+}
+
+Ref<Texture> MetalRenderDevice::CreateTexture(const TextureDesc& desc)
+{
+  Ref<Texture> texture = CreateRef<MetalTexture>((id<MTLDevice>)m_Device, desc);
+  m_Textures.PushBack(texture);
+  return texture;
+}
+
+Ref<Texture> MetalRenderDevice::LoadTexture(const String &path)
+{
+  int width, height, channels;
+  stbi_set_flip_vertically_on_load(true);
+  unsigned char* data = stbi_load(path.Raw(), &width, &height, &channels, 4);
+  NEPTUNE_ASSERT(data, "Failed to load image");
+  
+  TextureDesc desc;
+  {
+  	desc.Type = TextureType::Texture2D;
+  	desc.Width = (Size)width;
+  	desc.Height = (Size)height;
+  	desc.Data = (void*)data;
+  	desc.Mipmapped = true;
+  }
+  
+  return CreateTexture(desc);
 }
 
 void MetalRenderDevice::Submit(CommandBuffer buffer)

@@ -49,6 +49,11 @@ void RenderCommand::SetVertexBuffer(const Ref<Buffer>& buffer, Size index)
   s_Encoder->SetVertexBuffer(buffer, index);
 }
 
+void RenderCommand::BindTexture(const Ref<Texture>& texture, Size index)
+{
+  s_Encoder->BindTexture(texture, index);
+}
+
 void RenderCommand::Submit(const DrawCommandDesc& desc)
 {
   s_Encoder->Submit(desc);

@@ -21,6 +21,9 @@ public:
   Ref<PipelineState> CreatePipelineState(const PipelineStateDesc& desc);
   Ref<Buffer> CreateBuffer(const BufferDesc& desc);
   
+  Ref<Texture> CreateTexture(const TextureDesc& desc);
+  Ref<Texture> LoadTexture(const String& path);
+  
   void Submit(CommandBuffer buffer);
   
 private:
@@ -32,8 +35,10 @@ private:
   Ref<MetalRenderCommandEncoder> m_Encoder;
   
   // We'll cache a reference to all resources to that we don't delete them until the device is shutdown.
+  // We might want a way to explicitly delete a resource though.
   DynamicArray<Ref<PipelineState>> m_PipelineStates;
   DynamicArray<Ref<Buffer>> m_Buffers;
+  DynamicArray<Ref<Texture>> m_Textures;
 };
 
 } // namespace Neptune
