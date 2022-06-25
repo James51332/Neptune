@@ -41,39 +41,33 @@ Application::~Application()
 }
 
 // shader source
-const char* vertex = R"(
+const char* shaderSrc = R"(
 #include <metal_stdlib>
 using namespace metal;
 
-struct Out
+struct VSInput
+{
+	float3 position [[attribute(0)]];
+	float4 color [[attribute(1)]];
+};
+
+struct FSInput
 {
 	float4 position [[position]];
 	float4 color;
 };
 
-vertex Out vertexFunc(const device packed_float3* vertices [[buffer(0)]],
-                         uint vertexID [[vertex_id]])
+vertex FSInput vertexFunc(VSInput in [[stage_in]])
 {
-	Out out;
-	out.position = float4(vertices[vertexID], 1);
-	out.color = float4(2 * vertices[vertexID].xy, 1, 1);
+	FSInput out;
+	out.position = float4(in.position, 1);
+	out.color = float4(in.color);
 	return out;
-})";
+}
 
-const char* fragment = R"(
-#include <metal_stdlib>
-using namespace metal;
-
-struct Out
+fragment float4 fragmentFunc(FSInput in [[stage_in]])
 {
-  float4 position [[position]];
-  float4 color;
-};
-
-fragment float4 fragmentFunc(Out in [[stage_in]])
-{
-	// Return the interpolated color.
-	return in.color;
+  return in.color;
 })";
 
 
@@ -87,8 +81,8 @@ void Application::Run()
   Ref<Shader> shader;
   {
     ShaderDesc desc;
-    desc.vertexSrc = vertex;
-    desc.fragmentSrc = fragment;
+    desc.vertexSrc = shaderSrc;
+    desc.fragmentSrc = shaderSrc;
     shader = m_RenderDevice->CreateShader(desc);
   }
   
@@ -97,16 +91,28 @@ void Application::Run()
   {
     PipelineStateDesc desc;
     desc.Shader = shader;
+    desc.Layout = {
+        { PipelineAttributeType::Float3, "Position" },
+        { PipelineAttributeType::UChar4, "Color", true }
+    };
+    
     pipeline = m_RenderDevice->CreatePipelineState(desc);
   }
   
   // Create Vertex Buffer
   Ref<Buffer> vertexBuffer;
   {
-    const Float32 data[] = {
-      0.0f, 0.5f, 0.0f,
-      0.5f, -0.5f, 0.0f,
-      -0.5f, -0.5f, 0.0f
+    struct Vertex
+    {
+      Float3 position;
+      UInt32 color;
+    };
+    
+    const Vertex data[] = {
+      {{-0.5f, -0.5f, 0.5f}, 0xffffffff},
+      {{ 0.5f, -0.5f, 0.5f}, 0xff0000ff},
+      {{ 0.5f,  0.5f, 0.5f}, 0xff00ff00},
+      {{-0.5f,  0.5f, 0.5f}, 0xffff0000}
     };
     
     BufferDesc desc;
@@ -116,12 +122,14 @@ void Application::Run()
     desc.Data = (void*)data;
     vertexBuffer = m_RenderDevice->CreateBuffer(desc);
   }
-  
+
   // Create index buffer
   Ref<Buffer> indexBuffer;
   {
     const UInt16 data[] = {
-    	0, 1, 2
+      // front
+      0, 1, 2,
+      2, 3, 0,
     };
     
     BufferDesc desc;
@@ -141,7 +149,7 @@ void Application::Run()
     
     drawCmd.Type = PrimitiveType::Triangle;
     drawCmd.Offset = 0;
-    drawCmd.Count = 3;
+    drawCmd.Count = indexBuffer->GetSize() / sizeof(UInt16);
   }
   
   m_Running = true;
