@@ -7,6 +7,7 @@
 #include "core/KeyEvent.h"
 #include "core/MouseEvent.h"
 #include "core/WindowEvent.h"
+#include "core/Input.h"
 
 #include "renderer/RenderContext.h"
 #include "renderer/RenderCommand.h"
@@ -35,11 +36,13 @@ Application::Application(const WindowDesc& desc)
   
   m_RenderDevice = m_RenderContext->GetRenderDevice();
   m_Swapchain = m_RenderContext->GetSwapchain();
+  
+  Input::OnInit();
 }
 
 Application::~Application()
 {
-  
+  Input::OnTerminate();
 }
 
 // shader source
@@ -227,37 +230,39 @@ void Application::Run()
   while (m_Running)
   {
     m_NativeApp->PollEvents();
+    Input::OnUpdate(); // Begin new Input frame
     
     // Event Stage
     Scope<Event> e;
     while (m_EventQueue.PopEvent(e))
     {
+      Input::OnEvent(e);
+      
       // Dispatch Events
-      m_EventQueue.Dispatch<WindowClosedEvent>(e, [this](const WindowClosedEvent& event) {
+      EventQueue::Dispatch<WindowClosedEvent>(e, [this](const WindowClosedEvent& event) {
         Stop();
         return true;
       });
       
-      m_EventQueue.Dispatch<WindowResizedEvent>(e, [=](const WindowResizedEvent& event) {
+      EventQueue::Dispatch<WindowResizedEvent>(e, [=](const WindowResizedEvent& event) {
         m_Swapchain->Resize(event.GetWidth(), event.GetHeight());
         return false;
       });
+    }
+    
+    // Camera Movement
+    {
+    	Float3 translate = Float3(0.0f);
       
-      m_EventQueue.Dispatch<KeyPressedEvent>(e, [&](const KeyPressedEvent& event) {
-        Float3 translate;
-        
-        if (event.GetKeyCode() == KeyCode::KeyD) translate.x += 0.05f;
-        if (event.GetKeyCode() == KeyCode::KeyA) translate.x -= 0.05f;
-        if (event.GetKeyCode() == KeyCode::KeyW) translate.y += 0.05f;
-        if (event.GetKeyCode() == KeyCode::KeyS) translate.y -= 0.05f;
-        
-        CameraDesc desc = camera.GetDesc();
-        desc.Position += translate;
-        camera.SetDesc(desc);
-        uniformBuffer->Update(sizeof(Matrix4), &camera.GetViewProjectionMatrix()[0][0]);
-        
-        return true;
-      });
+      if (Input::KeyDown(KeyCode::KeyD)) translate.x += 0.05f;
+      if (Input::KeyDown(KeyCode::KeyA)) translate.x -= 0.05f;
+      if (Input::KeyDown(KeyCode::KeyW)) translate.y += 0.05f;
+      if (Input::KeyDown(KeyCode::KeyS)) translate.y -= 0.05f;
+      
+      CameraDesc desc = camera.GetDesc();
+      desc.Position += translate;
+      camera.SetDesc(desc);
+      uniformBuffer->Update(sizeof(Matrix4), &camera.GetViewProjectionMatrix()[0][0]);
     }
     
     // Render

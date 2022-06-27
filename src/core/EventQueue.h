@@ -19,7 +19,7 @@ public:
   bool PopEvent(Scope<Event>& event);
   
   template <typename T, typename F>
-  void Dispatch(Scope<Event>& event, const F& func)
+  static void Dispatch(Scope<Event>& event, const F& func)
   {
     if (!event->Handled && T::GetStaticType() == event->GetType())
     {

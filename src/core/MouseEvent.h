@@ -83,16 +83,16 @@ private:
 class MouseScrolledEvent : public Event
 {
 public:
-  MouseScrolledEvent(UInt32 yScroll, UInt32 xScroll)
+  MouseScrolledEvent(Int32 yScroll, Int32 xScroll)
   	: m_YScroll(yScroll), m_XScroll(xScroll) {}
   
   
-  UInt32 GetYScroll() const noexcept
+  Int32 GetYScroll() const noexcept
   {
     return m_YScroll;
   }
   
-  UInt32 GetXScroll() const noexcept
+  Int32 GetXScroll() const noexcept
   {
     return m_XScroll;
   }
@@ -106,7 +106,7 @@ public:
   EVENT_CATEGORY(EventCategoryInput | EventCategoryMouse);
   
 private:
-  UInt32 m_YScroll, m_XScroll;
+  Int32 m_YScroll, m_XScroll;
 };
 
 } // namespace Neptune
