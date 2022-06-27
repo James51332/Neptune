@@ -80,7 +80,8 @@ Ref<Texture> MetalRenderDevice::LoadTexture(const String &path)
   	desc.Width = (Size)width;
   	desc.Height = (Size)height;
   	desc.Data = (void*)data;
-  	desc.Mipmapped = true;
+    desc.PixelFormat = PixelFormat::RGBA8Unorm;
+    desc.Mipmapped = true;
   }
   
   return CreateTexture(desc);

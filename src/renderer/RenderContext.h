@@ -10,7 +10,7 @@ namespace Neptune
 class RenderContext
 {
 public:
-  static Ref<RenderContext> Create();
+  static Ref<RenderContext> Create(Size width, Size height);
   virtual ~RenderContext() noexcept;
   
   RenderAPI GetAPI() const noexcept { return m_API; }

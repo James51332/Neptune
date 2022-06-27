@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Texture.h"
+
 namespace Neptune
 {
 
@@ -9,6 +11,12 @@ class Framebuffer
 {
 public:
   virtual ~Framebuffer() = default;
+  
+  // TODO: We should allow the color attachment to be accessed too.
+  const Ref<Texture>& GetDepthAttachment() const noexcept { return m_DepthTexture; }
+  
+protected:  
+  Ref<Texture> m_DepthTexture;
 };
 
 // ----- Swapchain -----------------
@@ -20,6 +28,8 @@ class Swapchain
 {
 public:
   virtual ~Swapchain() = default;
+  
+  virtual void Resize(Size width, Size height) = 0;
   
   // This may block. If all framebuffers are in use, the render thread really doesn't
   // need to be doing anything anyways.

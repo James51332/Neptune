@@ -78,6 +78,7 @@ MetalPipelineState::MetalPipelineState(id<MTLDevice> device, const PipelineState
       
       descriptor.layouts[0].stride = desc.Layout.Stride;
       pipelineDesc.vertexDescriptor = descriptor;
+      pipelineDesc.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
     }
     
   	NSError* err;

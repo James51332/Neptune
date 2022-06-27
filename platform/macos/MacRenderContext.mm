@@ -15,12 +15,12 @@ namespace Neptune
 
 // ----- MacRenderContext ---------
 
-Ref<MacRenderContext> MacRenderContext::Create(RenderAPI api)
+Ref<MacRenderContext> MacRenderContext::Create(RenderAPI api, Size width, Size height)
 {
   switch (api) {
     case RenderAPI::None: { NEPTUNE_ASSERT(false, "Unsupported RenderAPI on this platform!"); break; }
     case RenderAPI::OpenGL: { NEPTUNE_ASSERT(false, "Unsupported RenderAPI on this platform!"); break; }
-    case RenderAPI::Metal: { return CreateRef<MacMetalRenderContext>(); break; }
+    case RenderAPI::Metal: { return CreateRef<MacMetalRenderContext>(width, height); break; }
     case RenderAPI::Vulkan: { NEPTUNE_ASSERT(false, "Unsupported RenderAPI on this platform!"); break; }
     case RenderAPI::DirectX: { NEPTUNE_ASSERT(false, "Unsupported RenderAPI on this platform!"); break; }
   }
@@ -34,7 +34,7 @@ MacRenderContext::~MacRenderContext()
 
 // ----- MacMetalRenderContext ---------
 
-MacMetalRenderContext::MacMetalRenderContext()
+MacMetalRenderContext::MacMetalRenderContext(Size width, Size height)
 {
   m_API = RenderAPI::Metal;
   Ref<MetalRenderDevice> device = CreateRef<MetalRenderDevice>();
@@ -45,7 +45,7 @@ MacMetalRenderContext::MacMetalRenderContext()
   m_Layer = [CAMetalLayer layer];
   ((CAMetalLayer*)m_Layer).device = (id<MTLDevice>)device->GetDevice();
   
-  m_Swapchain = CreateRef<MetalSwapchain>((id<MTLDevice>)device->GetDevice(), (CAMetalLayer*)m_Layer);
+  m_Swapchain = CreateRef<MetalSwapchain>((id<MTLDevice>)device->GetDevice(), (CAMetalLayer*)m_Layer, width, height);
 }
 
 MacMetalRenderContext::~MacMetalRenderContext()

@@ -11,7 +11,7 @@ namespace Neptune
 class MacRenderContext : public RenderContext
 {
 public:
-  static Ref<MacRenderContext> Create(RenderAPI api);
+  static Ref<MacRenderContext> Create(RenderAPI api, Size width, Size height);
   virtual ~MacRenderContext();
 };
 
@@ -20,7 +20,7 @@ public:
 class MacMetalRenderContext final : public MacRenderContext
 {
 public:
-  MacMetalRenderContext();
+  MacMetalRenderContext(Size width, Size height);
   virtual ~MacMetalRenderContext();
   
   void* GetLayer() noexcept { return m_Layer; }

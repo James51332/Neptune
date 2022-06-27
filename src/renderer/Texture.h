@@ -10,13 +10,21 @@ enum class TextureType
   Texture2D
 };
 
+enum class PixelFormat
+{
+  RGBA8Unorm,
+  Depth32
+};
+
 struct TextureDesc
 {
   Size Width;
   Size Height;
+  PixelFormat PixelFormat;
   bool Mipmapped;
   TextureType Type;
   void* Data;
+  bool RenderTarget = false;
 };
 
 class Texture

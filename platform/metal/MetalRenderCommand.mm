@@ -54,13 +54,21 @@ void MetalRenderCommandEncoder::BeginRenderPass(const RenderPass& renderPass)
 {
   @autoreleasepool
   {
+    Ref<MetalFramebuffer> framebuffer = StaticRefCast<MetalFramebuffer>(renderPass.Framebuffer);
+    
   	MTLRenderPassDescriptor *renderPassDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
-  	
-  	renderPassDescriptor.colorAttachments[0].texture = StaticRefCast<MetalFramebuffer>(renderPass.Framebuffer)->GetDrawable().texture;
+    
+  	renderPassDescriptor.colorAttachments[0].texture = framebuffer->GetDrawable().texture;
   	renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionFromLoadAction(renderPass.LoadAction);
   	renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorFromFloat4(renderPass.ClearColor);
+    
+    renderPassDescriptor.depthAttachment.texture = StaticRefCast<MetalTexture>(framebuffer->GetDepthAttachment())->GetTexture();
+    renderPassDescriptor.depthAttachment.clearDepth = 1.0f;
+    renderPassDescriptor.depthAttachment.loadAction = MTLLoadActionClear;
+    renderPassDescriptor.depthAttachment.storeAction = MTLStoreActionDontCare;
   	
   	m_ActiveRenderEncoder = [[m_ActiveCommandBuffer renderCommandEncoderWithDescriptor: renderPassDescriptor] retain];
+    [m_ActiveRenderEncoder setDepthStencilState: StaticRefCast<MetalFramebuffer>(renderPass.Framebuffer)->GetDepthStencilState()];
   	m_RenderPass = true;
   }
 }
@@ -89,7 +97,10 @@ void MetalRenderCommandEncoder::SetPipelineState(const Ref<PipelineState>& state
 
 void MetalRenderCommandEncoder::SetVertexBuffer(const Ref<Buffer> &buffer, Size index)
 {
-	NEPTUNE_ASSERT(m_RenderPass && (buffer->GetType() == BufferType::Vertex), "Unable to bind buffer as vertex buffer!");
+  NEPTUNE_ASSERT(m_RenderPass, "Begin RenderPass before recording!");
+  
+  // Disabled to allow temporary API for binding uniforms
+  // NEPTUNE_ASSERT((buffer->GetType() == BufferType::Vertex), "Unable to bind buffer as vertex buffer!");
   @autoreleasepool
   {
     [m_ActiveRenderEncoder setVertexBuffer: StaticRefCast<MetalBuffer>(buffer)->GetBuffer()
@@ -100,7 +111,7 @@ void MetalRenderCommandEncoder::SetVertexBuffer(const Ref<Buffer> &buffer, Size 
 
 void MetalRenderCommandEncoder::BindTexture(const Ref<Texture>& texture, Size index)
 {
-  NEPTUNE_ASSERT(m_RenderPass, "Begin RenderPass before binding texture!");
+  NEPTUNE_ASSERT(m_RenderPass, "Unable to bind buffer as vertex buffer!");
   @autoreleasepool
   {
     [m_ActiveRenderEncoder setFragmentTexture: StaticRefCast<MetalTexture>(texture)->GetTexture()

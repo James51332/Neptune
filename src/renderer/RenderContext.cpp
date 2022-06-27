@@ -8,10 +8,10 @@
 namespace Neptune
 {
 
-Ref<RenderContext> RenderContext::Create()
+Ref<RenderContext> RenderContext::Create(Size width, Size height)
 {
 #ifdef NEPTUNE_MACOS
-  return MacRenderContext::Create(Renderer::GetAPI());
+  return MacRenderContext::Create(Renderer::GetAPI(), width, height);
 #endif
 }
 

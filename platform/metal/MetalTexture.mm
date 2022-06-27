@@ -4,6 +4,19 @@
 namespace Neptune
 {
 
+// ----- MetalTexture -----------------
+
+static MTLPixelFormat MTLPixelFormatFromPixelFormat(PixelFormat format)
+{
+  switch (format)
+  {
+    case PixelFormat::RGBA8Unorm: return MTLPixelFormatRGBA8Unorm;
+    case PixelFormat::Depth32: return MTLPixelFormatDepth32Float;
+  }
+  
+  return MTLPixelFormatInvalid;
+}
+
 MetalTexture::MetalTexture(id<MTLDevice> device, const TextureDesc& desc)
 	: Texture(desc), m_Texture(nullptr)
 {
@@ -14,9 +27,13 @@ MetalTexture::MetalTexture(id<MTLDevice> device, const TextureDesc& desc)
     {
       case TextureType::Texture2D:
       {
-      	descriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat: MTLPixelFormatRGBA8Unorm 																																width: desc.Width
+      	descriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat: MTLPixelFormatFromPixelFormat(desc.PixelFormat) 																																width: desc.Width
       	                                                               height: desc.Height
       	                                                            mipmapped: desc.Mipmapped];
+        
+        if (desc.RenderTarget)
+        	descriptor.usage = MTLTextureUsageRenderTarget;
+        
         break;
     	}
       default: NEPTUNE_ASSERT(false, "Failed to create MTLTextureDescriptor!");

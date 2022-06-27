@@ -15,6 +15,7 @@
 #include "renderer/CommandBuffer.h"
 #include "renderer/Shader.h"
 #include "renderer/Texture.h"
+#include "renderer/Camera.h"
 
 namespace Neptune
 {
@@ -29,7 +30,7 @@ Application::Application(const WindowDesc& desc)
   m_NativeApp = NativeApplication::Create();
   m_Window = Window::Create(desc);
   
-  m_RenderContext = RenderContext::Create();
+  m_RenderContext = RenderContext::Create(desc.Width, desc.Height);
   m_Window->SetContext(m_RenderContext);
   
   m_RenderDevice = m_RenderContext->GetRenderDevice();
@@ -60,10 +61,16 @@ struct FSInput
 	float4 color;
 };
 
-vertex FSInput vertexFunc(VSInput in [[stage_in]])
+struct Uniform
+{
+	float4x4 viewProjection;
+};
+
+vertex FSInput vertexFunc(VSInput in [[stage_in]],
+													constant Uniform& uniform [[buffer(1)]])
 {
 	FSInput out;
-	out.position = float4(in.position, 1);
+	out.position = uniform.viewProjection * float4(in.position, 1);
 	out.texCoord = in.texCoord;
 	out.color = in.color;
 	return out;
@@ -116,10 +123,30 @@ void Application::Run()
     };
     
     const Vertex data[] = {
-      {{-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f}},
-      {{ 0.5f, -0.5f, 0.5f}, {1.0f, 0.0f}},
-      {{ 0.5f,  0.5f, 0.5f}, {1.0f, 1.0f}},
-      {{-0.5f,  0.5f, 0.5f}, {0.0f, 1.0f}}
+      {{-0.5f,0.5f,-0.5f},  {0.0f, 0.0f}},
+      {{-0.5f,-0.5f,-0.5f}, {0.0f, 1.0f}},
+      {{0.5f,-0.5f,-0.5f},  {1.0f, 1.0f}},
+      {{0.5f,0.5f,-0.5f},   {1.0f, 0.0f}},
+      {{-0.5f,0.5f,0.5f},   {0.0f, 0.0f}},
+      {{-0.5f,-0.5f,0.5f},  {0.0f, 1.0f}},
+      {{0.5f,-0.5f,0.5f},   {1.0f, 1.0f}},
+      {{0.5f,0.5f,0.5f},    {1.0f, 0.0f}},
+      {{0.5f,0.5f,-0.5f},   {0.0f, 0.0f}},
+      {{0.5f,-0.5f,-0.5f},  {0.0f, 1.0f}},
+      {{0.5f,-0.5f,0.5f},   {1.0f, 1.0f}},
+      {{0.5f,0.5f,0.5f},    {1.0f, 0.0f}},
+      {{-0.5f,0.5f,-0.5f},  {0.0f, 0.0f}},
+      {{-0.5f,-0.5f,-0.5f}, {0.0f, 1.0f}},
+      {{-0.5f,-0.5f,0.5f},  {1.0f, 1.0f}},
+      {{-0.5f,0.5f,0.5f},   {1.0f, 0.0f}},
+      {{-0.5f,0.5f,0.5f},   {0.0f, 0.0f}},
+      {{-0.5f,0.5f,-0.5f},  {0.0f, 1.0f}},
+      {{0.5f,0.5f,-0.5f},   {1.0f, 1.0f}},
+      {{0.5f,0.5f,0.5f},    {1.0f, 0.0f}},
+      {{-0.5f,-0.5f,0.5f},  {0.0f, 0.0f}},
+      {{-0.5f,-0.5f,-0.5f}, {0.0f, 1.0f}},
+      {{0.5f,-0.5f,-0.5f},  {1.0f, 1.0f}},
+      {{0.5f,-0.5f,0.5f},   {1.0f, 0.0f}}
     };
     
     BufferDesc desc;
@@ -130,12 +157,22 @@ void Application::Run()
     vertexBuffer = m_RenderDevice->CreateBuffer(desc);
   }
 
-  // Create index buffer
+  // Create Index Buffer
   Ref<Buffer> indexBuffer;
   {
     const UInt16 data[] = {
-      0, 1, 2,
-      2, 3, 0,
+      0,1,3,
+      3,1,2,
+      4,5,7,
+      7,5,6,
+      8,9,11,
+      11,9,10,
+      12,13,15,
+      15,13,14,
+      16,17,19,
+      19,17,18,
+      20,21,23,
+      23,21,22
     };
     
     BufferDesc desc;
@@ -150,6 +187,28 @@ void Application::Run()
   Ref<Texture> texture;
   {
     texture = m_RenderDevice->LoadTexture("resources/panda.png");
+  }
+  
+  // Create Camera
+  Camera camera;
+  {
+    CameraDesc desc;
+    desc.Type = ProjectionType::Perspective;
+    desc.Position = { 1.0f, 1.0f, 2.0f };
+    desc.Width = 4.0f;
+    desc.Height = 4.0f;
+    camera = Camera(desc);
+  }
+  
+  // Create Uniform Buffer
+  Ref<Buffer> uniformBuffer;
+  {
+    BufferDesc desc;
+    desc.Type = BufferType::Uniform;
+    desc.Usage = BufferUsage::Dynamic;
+    desc.Size = sizeof(Matrix4);
+    desc.Data = (void*)&camera.GetViewProjectionMatrix()[0][0];
+    uniformBuffer = m_RenderDevice->CreateBuffer(desc);
   }
   
   // Create draw command desc (can be reused, since the same for each call)
@@ -178,6 +237,27 @@ void Application::Run()
         Stop();
         return true;
       });
+      
+      m_EventQueue.Dispatch<WindowResizedEvent>(e, [=](const WindowResizedEvent& event) {
+        m_Swapchain->Resize(event.GetWidth(), event.GetHeight());
+        return false;
+      });
+      
+      m_EventQueue.Dispatch<KeyPressedEvent>(e, [&](const KeyPressedEvent& event) {
+        Float3 translate;
+        
+        if (event.GetKeyCode() == KeyCode::KeyD) translate.x += 0.05f;
+        if (event.GetKeyCode() == KeyCode::KeyA) translate.x -= 0.05f;
+        if (event.GetKeyCode() == KeyCode::KeyW) translate.y += 0.05f;
+        if (event.GetKeyCode() == KeyCode::KeyS) translate.y -= 0.05f;
+        
+        CameraDesc desc = camera.GetDesc();
+        desc.Position += translate;
+        camera.SetDesc(desc);
+        uniformBuffer->Update(sizeof(Matrix4), &camera.GetViewProjectionMatrix()[0][0]);
+        
+        return true;
+      });
     }
     
     // Render
@@ -196,6 +276,7 @@ void Application::Run()
         RenderCommand::BeginRenderPass(renderPass);
         
         RenderCommand::SetVertexBuffer(vertexBuffer, 0);
+        RenderCommand::SetVertexBuffer(uniformBuffer, 1);
         RenderCommand::SetPipelineState(pipeline);
         RenderCommand::BindTexture(texture, 0);
         
