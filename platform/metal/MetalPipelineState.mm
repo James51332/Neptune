@@ -49,6 +49,16 @@ static MTLVertexFormat MTLVertexFormatFromPipelineAttributeType(PipelineAttribut
   }
 }
 
+static MTLCompareFunction MTLCompareFunctionFromCompareFunction(CompareFunction function)
+{
+  switch (function)
+  {
+    case CompareFunction::Less: return MTLCompareFunctionLess;
+    case CompareFunction::Equal: return MTLCompareFunctionEqual;
+    default: return MTLCompareFunctionAlways;
+  }
+}
+
 MetalPipelineState::MetalPipelineState(id<MTLDevice> device, const PipelineStateDesc& desc)
 {
   @autoreleasepool
@@ -77,9 +87,30 @@ MetalPipelineState::MetalPipelineState(id<MTLDevice> device, const PipelineState
       }
       
       descriptor.layouts[0].stride = desc.Layout.Stride;
+      descriptor.layouts[0].stepRate = 1;
+      descriptor.layouts[0].stepFunction = MTLVertexStepFunctionPerVertex;
       pipelineDesc.vertexDescriptor = descriptor;
       pipelineDesc.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
     }
+    
+    // create depth stencil state
+    {
+      MTLDepthStencilDescriptor* depth = [MTLDepthStencilDescriptor new];
+      depth.depthCompareFunction = MTLCompareFunctionFromCompareFunction(desc.DepthStencilState.Function);
+      depth.depthWriteEnabled = desc.DepthStencilState.DepthWriteEnabled;
+      
+      m_DepthStencilState = [device newDepthStencilStateWithDescriptor: depth];
+      [depth release];
+    }
+    
+    // TODO: Create API for this
+    pipelineDesc.colorAttachments[0].blendingEnabled = YES;
+    pipelineDesc.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
+    pipelineDesc.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+    pipelineDesc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+    pipelineDesc.colorAttachments[0].alphaBlendOperation = MTLBlendOperationAdd;
+    pipelineDesc.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorOne;
+    pipelineDesc.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
     
   	NSError* err;
   	m_PipelineState = [device newRenderPipelineStateWithDescriptor: pipelineDesc
@@ -97,6 +128,9 @@ MetalPipelineState::~MetalPipelineState()
   {
     [m_PipelineState release];
     m_PipelineState = nil;
+    
+    [m_DepthStencilState release];
+    m_DepthStencilState = nil;
   }
 }
 

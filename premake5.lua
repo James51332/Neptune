@@ -23,6 +23,7 @@ includeDirs["spdlog"] = "thirdparty/spdlog/include"
 includeDirs["concurrentQueue"] = "thirdparty/concurrentQueue"
 includeDirs["glm"] = "thirdparty/glm"
 includeDirs["stb_image"] = "thirdparty/stb_image"
+includeDirs["imgui"] = "thirdparty/imgui"
 
 project "Neptune"
 	kind "StaticLib"
@@ -40,6 +41,8 @@ project "Neptune"
     "thirdparty/**.inl",
     "thirdparty/**.hpp",
     "thirdparty/stb_image/**.cpp",
+    "thirdparty/imgui/imgui/*.h",
+    "thirdparty/imgui/imgui/*.cpp",
   	"pch/neptunepch.h",
    	"pch/neptunepch.cpp"
 	}
@@ -56,7 +59,8 @@ project "Neptune"
 		includeDirs["spdlog"],
   	includeDirs["concurrentQueue"],
   	includeDirs["glm"],
-  	includeDirs["stb_image"]
+  	includeDirs["stb_image"],
+  	includeDirs["imgui"]
 	}
 
 	filter "system:windows"
@@ -124,7 +128,8 @@ project "Sandbox"
   	includeDirs["spdlog"],
    	includeDirs["concurrentQueue"],
     includeDirs["glm"],
-    includeDirs["stb_image"]
+    includeDirs["stb_image"],
+    includeDirs["imgui"]
 	}
 	
   filter "system:windows"

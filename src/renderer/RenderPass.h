@@ -14,11 +14,20 @@ enum class LoadAction
   DontCare
 };
 
+// ----- StoreAction -----------------
+
+enum class StoreAction
+{
+  Store,
+  DontCare
+};
+
 // ----- RenderPass -----------------
 
 struct RenderPass
 {
   LoadAction LoadAction;
+  StoreAction StoreAction;
   Ref<Framebuffer> Framebuffer;
   Float4 ClearColor;
 };

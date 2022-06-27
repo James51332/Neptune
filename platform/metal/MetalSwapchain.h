@@ -19,10 +19,11 @@ public:
   ~MetalFramebuffer();
   
   id<CAMetalDrawable> GetDrawable();
-  id<MTLDepthStencilState> GetDepthStencilState() { return m_DepthStencil; }
   void Present();
   
   void Resize(Size width, Size height);
+  Size GetWidth() { return m_Width; }
+  Size GetHeight() { return m_Height; }
   
 private:
   void CreateDepthTexture();
@@ -30,7 +31,6 @@ private:
 private:
   CAMetalLayer* m_Layer = nil;
   id<CAMetalDrawable> m_Drawable = nil;
-  id<MTLDepthStencilState> m_DepthStencil = nil;
   
   Size m_Width, m_Height;
   

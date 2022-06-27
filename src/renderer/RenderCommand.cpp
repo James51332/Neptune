@@ -49,6 +49,11 @@ void RenderCommand::SetVertexBuffer(const Ref<Buffer>& buffer, Size index)
   s_Encoder->SetVertexBuffer(buffer, index);
 }
 
+void RenderCommand::SetClipRect(Size x, Size y, Size w, Size h)
+{
+  s_Encoder->SetClipRect(x, y, w, h);
+}
+
 void RenderCommand::BindTexture(const Ref<Texture>& texture, Size index)
 {
   s_Encoder->BindTexture(texture, index);

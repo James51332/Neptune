@@ -32,6 +32,27 @@
   return NO;
 }
 
+- (void)windowDidResize:(NSNotification *)notification
+{
+  NSWindow* window = [notification object];
+  NSRect frame = [window contentRectForFrameRect: window.frame];
+  Neptune::Application::PushEvent(Neptune::CreateScope<Neptune::WindowResizedEvent>((UInt32)frame.size.width, (UInt32)frame.size.height));
+}
+
+- (void)windowWillEnterFullScreen:(NSNotification *)notification
+{
+  NSWindow* window = [notification object];
+  NSRect frame = [window contentRectForFrameRect: window.frame];
+  Neptune::Application::PushEvent(Neptune::CreateScope<Neptune::WindowResizedEvent>((UInt32)frame.size.width, (UInt32)frame.size.height));
+}
+
+- (void)windowWillExitFullScreen:(NSNotification *)notification
+{
+  NSWindow* window = [notification object];
+  NSRect frame = [window contentRectForFrameRect: window.frame];
+  Neptune::Application::PushEvent(Neptune::CreateScope<Neptune::WindowResizedEvent>((UInt32)frame.size.width, (UInt32)frame.size.height));
+}
+
 @end
 
 // ----- NeptuneView ---------

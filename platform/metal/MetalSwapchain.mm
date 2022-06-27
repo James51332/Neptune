@@ -11,27 +11,13 @@ namespace Neptune
 MetalFramebuffer::MetalFramebuffer(id<MTLDevice> device, CAMetalLayer* layer, Size width, Size height)
 	: m_Layer(layer), m_Width(width), m_Height(height)
 {
-  @autoreleasepool
-  {
-    MTLDepthStencilDescriptor* desc = [MTLDepthStencilDescriptor new];
-    desc.depthCompareFunction = MTLCompareFunctionLess;
-    desc.depthWriteEnabled = true;
-    m_DepthStencil = [device newDepthStencilStateWithDescriptor: desc];
-  
-  	CreateDepthTexture();
-    
-    [desc release];
-    desc = nil;
-  }
+  CreateDepthTexture();
 }
 
 MetalFramebuffer::~MetalFramebuffer()
 {
   @autoreleasepool
   {
-    [m_DepthStencil release];
-    m_DepthStencil = nil;
-    
     [m_Drawable release];
     m_Drawable = nil;
   }
@@ -53,8 +39,9 @@ id<CAMetalDrawable> MetalFramebuffer::GetDrawable()
 
 void MetalFramebuffer::Resize(Size width, Size height)
 {
-  m_Width = width;
-  m_Height = height;
+  m_Width = width > m_Width ? width : m_Width;
+  m_Height = height > m_Height ? height : m_Height;
+  
   CreateDepthTexture();
 }
 
@@ -107,6 +94,7 @@ MetalSwapchain::~MetalSwapchain()
 
 void MetalSwapchain::Resize(Size width, Size height)
 {
+  [m_Layer setDrawableSize:CGSizeMake((CGFloat)width, (CGFloat)height)];
 	for (auto& fb : m_Framebuffers)
   {
     fb->Resize(width, height);
@@ -119,6 +107,9 @@ Ref<Framebuffer> MetalSwapchain::GetNextFramebuffer() noexcept
   m_Next = (m_Next + 1) % m_Framebuffers.Size();
   
   // TODO: Wait for image to be avaiable.
+  // I don't think it matters much in Metal.
+  // Once the work is scheduled, then the framebuffer
+  // should be available.
   return m_Framebuffers[ID];
 }
 

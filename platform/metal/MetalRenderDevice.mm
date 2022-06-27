@@ -63,7 +63,7 @@ Ref<Buffer> MetalRenderDevice::CreateBuffer(const BufferDesc &desc)
 Ref<Texture> MetalRenderDevice::CreateTexture(const TextureDesc& desc)
 {
   Ref<Texture> texture = CreateRef<MetalTexture>((id<MTLDevice>)m_Device, desc);
-  m_Textures.PushBack(texture);
+  //m_Textures.PushBack(texture); // We probably don't want to cache all of the textures.
   return texture;
 }
 

@@ -5,6 +5,21 @@
 namespace Neptune
 {
 
+// ----- DepthStencilState -----------------
+
+enum class CompareFunction
+{
+	Always,
+  Less,
+  Equal
+};
+
+struct DepthStencilState
+{
+  CompareFunction Function;
+  bool DepthWriteEnabled;
+};
+
 // ----- PipelineLayout -----------------
 
 enum class PipelineAttributeType
@@ -111,6 +126,7 @@ struct PipelineStateDesc
 {
   Ref<Shader> Shader;
   PipelineLayout Layout;
+  DepthStencilState DepthStencilState;
 };
 
 class PipelineState

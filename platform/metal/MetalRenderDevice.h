@@ -38,7 +38,6 @@ private:
   // We might want a way to explicitly delete a resource though.
   DynamicArray<Ref<PipelineState>> m_PipelineStates;
   DynamicArray<Ref<Buffer>> m_Buffers;
-  DynamicArray<Ref<Texture>> m_Textures;
 };
 
 } // namespace Neptune

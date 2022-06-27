@@ -17,6 +17,9 @@
 #include "renderer/Shader.h"
 #include "renderer/Texture.h"
 #include "renderer/Camera.h"
+#include "renderer/ImGUIRenderer.h"
+
+#include <imgui/imgui.h>
 
 namespace Neptune
 {
@@ -38,10 +41,12 @@ Application::Application(const WindowDesc& desc)
   m_Swapchain = m_RenderContext->GetSwapchain();
   
   Input::OnInit();
+  ImGUIRenderer::OnInit(m_RenderDevice, desc.Width, desc.Height);
 }
 
 Application::~Application()
 {
+  ImGUIRenderer::OnTerminate();
   Input::OnTerminate();
 }
 
@@ -231,12 +236,13 @@ void Application::Run()
   {
     m_NativeApp->PollEvents();
     Input::OnUpdate(); // Begin new Input frame
-    
+        
     // Event Stage
     Scope<Event> e;
     while (m_EventQueue.PopEvent(e))
     {
       Input::OnEvent(e);
+      ImGUIRenderer::OnEvent(e);
       
       // Dispatch Events
       EventQueue::Dispatch<WindowClosedEvent>(e, [this](const WindowClosedEvent& event) {
@@ -249,6 +255,8 @@ void Application::Run()
         return false;
       });
     }
+    
+    ImGUIRenderer::OnUpdate();
     
     // Camera Movement
     {
@@ -269,29 +277,33 @@ void Application::Run()
     {
       Ref<Framebuffer> framebuffer = m_Swapchain->GetNextFramebuffer();
       
-      CommandBuffer commandBuffer;
-      RenderCommand::BeginRecording(commandBuffer);
-      {
-        RenderPass renderPass;
-        {
-          renderPass.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-          renderPass.LoadAction = LoadAction::Clear;
-          renderPass.Framebuffer = framebuffer;
-        }
-        RenderCommand::BeginRenderPass(renderPass);
-        
-        RenderCommand::SetVertexBuffer(vertexBuffer, 0);
-        RenderCommand::SetVertexBuffer(uniformBuffer, 1);
-        RenderCommand::SetPipelineState(pipeline);
-        RenderCommand::BindTexture(texture, 0);
-        
-        RenderCommand::Submit(drawCmd);
-        
-        RenderCommand::EndRenderPass();
-      }
-      RenderCommand::EndRecording();
+      ImGui::ShowDemoWindow();
       
-      m_RenderDevice->Submit(commandBuffer);
+      ImGUIRenderer::Render(framebuffer);
+      
+//      CommandBuffer commandBuffer;
+//      RenderCommand::BeginRecording(commandBuffer);
+//      {
+//        RenderPass renderPass;
+//        {
+//          renderPass.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+//          renderPass.LoadAction = LoadAction::Load;
+//          renderPass.Framebuffer = framebuffer;
+//        }
+//        RenderCommand::BeginRenderPass(renderPass);
+//
+//        RenderCommand::SetVertexBuffer(vertexBuffer, 0);
+//        RenderCommand::SetVertexBuffer(uniformBuffer, 1);
+//        RenderCommand::SetPipelineState(pipeline);
+//        RenderCommand::BindTexture(texture, 0);
+//
+//        RenderCommand::Submit(drawCmd);
+//
+//        RenderCommand::EndRenderPass();
+//      }
+//      RenderCommand::EndRecording();
+//      
+//      m_RenderDevice->Submit(commandBuffer);
       m_Swapchain->Present(framebuffer);
     }
   }

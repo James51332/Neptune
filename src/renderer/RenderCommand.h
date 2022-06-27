@@ -61,6 +61,8 @@ public:
   virtual void SetPipelineState(const Ref<PipelineState>& state) = 0;
   virtual void SetVertexBuffer(const Ref<Buffer>& buffer, Size index) = 0;
   
+  virtual void SetClipRect(Size x, Size y, Size w, Size h) = 0;
+  
   // I don't know how other APIs handle this, but in Metal and OpenGL, we just
   // bind textures in a similiar manner to buffers and PSOs.
   virtual void BindTexture(const Ref<Texture>& texture, Size index = 0) = 0;
@@ -88,6 +90,8 @@ public:
   
   static void SetPipelineState(const Ref<PipelineState>& state);
   static void SetVertexBuffer(const Ref<Buffer>& buffer, Size index);
+  
+  static void SetClipRect(Size x, Size y, Size w, Size h);
   
   static void BindTexture(const Ref<Texture>& texture, Size index = 0);
   

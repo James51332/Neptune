@@ -56,7 +56,6 @@ void MetalCommandBufferRegistry::Commit(CommandBuffer buffer)
   @autoreleasepool
   {
   	[m_Registry[buffer.ID] commit];
-  	[m_Registry[buffer.ID] waitUntilCompleted];
   	Free(buffer); // We can free after committing.
   }
 }

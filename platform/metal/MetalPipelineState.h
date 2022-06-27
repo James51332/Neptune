@@ -4,6 +4,7 @@
 
 #import <Metal/MTLDevice.h>
 #import <Metal/MTLRenderPipeline.h>
+#import <Metal/MTLDepthStencil.h>
 
 namespace Neptune
 {
@@ -17,9 +18,11 @@ public:
   ~MetalPipelineState();
   
   id<MTLRenderPipelineState> GetPipelineState() { return m_PipelineState; }
+  id<MTLDepthStencilState> GetDepthStencilState() { return m_DepthStencilState; }
 
 private:
   id<MTLRenderPipelineState> m_PipelineState;
+  id<MTLDepthStencilState> m_DepthStencilState;
 };
 
 } // namespace Neptune

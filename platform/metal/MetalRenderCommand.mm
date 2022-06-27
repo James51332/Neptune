@@ -45,6 +45,15 @@ static MTLLoadAction MTLLoadActionFromLoadAction(LoadAction loadAction) noexcept
   }
 }
 
+static MTLStoreAction MTLStoreActionFromStoreAction(StoreAction action) noexcept
+{
+  switch (action)
+  {
+    case StoreAction::Store: return MTLStoreActionStore;
+    default: return MTLStoreActionDontCare;
+  }
+}
+
 static MTLClearColor MTLClearColorFromFloat4(const Float4& vec) noexcept
 {
   return MTLClearColorMake(vec.x, vec.y, vec.z, vec.w);
@@ -60,16 +69,21 @@ void MetalRenderCommandEncoder::BeginRenderPass(const RenderPass& renderPass)
     
   	renderPassDescriptor.colorAttachments[0].texture = framebuffer->GetDrawable().texture;
   	renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionFromLoadAction(renderPass.LoadAction);
+		renderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionFromStoreAction(renderPass.StoreAction);
   	renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorFromFloat4(renderPass.ClearColor);
     
     renderPassDescriptor.depthAttachment.texture = StaticRefCast<MetalTexture>(framebuffer->GetDepthAttachment())->GetTexture();
     renderPassDescriptor.depthAttachment.clearDepth = 1.0f;
+    
+    // TODO: The user might want control over this at some point.
     renderPassDescriptor.depthAttachment.loadAction = MTLLoadActionClear;
     renderPassDescriptor.depthAttachment.storeAction = MTLStoreActionDontCare;
-  	
+    
   	m_ActiveRenderEncoder = [[m_ActiveCommandBuffer renderCommandEncoderWithDescriptor: renderPassDescriptor] retain];
-    [m_ActiveRenderEncoder setDepthStencilState: StaticRefCast<MetalFramebuffer>(renderPass.Framebuffer)->GetDepthStencilState()];
-  	m_RenderPass = true;
+    
+    // TODO: Expose API
+    [m_ActiveRenderEncoder setCullMode:MTLCullModeNone];
+    m_RenderPass = true;
   }
 }
 
@@ -91,7 +105,9 @@ void MetalRenderCommandEncoder::SetPipelineState(const Ref<PipelineState>& state
   NEPTUNE_ASSERT(m_RenderPass, "Begin RenderPass before setting pipeline state!");
   @autoreleasepool
   {
-    [m_ActiveRenderEncoder setRenderPipelineState:StaticRefCast<MetalPipelineState>(state)->GetPipelineState()];
+    Ref<MetalPipelineState> ps = StaticRefCast<MetalPipelineState>(state);
+    [m_ActiveRenderEncoder setRenderPipelineState: ps->GetPipelineState()];
+    [m_ActiveRenderEncoder setDepthStencilState: ps->GetDepthStencilState()];
   }
 }
 
@@ -106,6 +122,22 @@ void MetalRenderCommandEncoder::SetVertexBuffer(const Ref<Buffer> &buffer, Size 
     [m_ActiveRenderEncoder setVertexBuffer: StaticRefCast<MetalBuffer>(buffer)->GetBuffer()
                                     offset: 0
                                    atIndex: index];
+  }
+}
+
+void MetalRenderCommandEncoder::SetClipRect(Size x, Size y, Size w, Size h)
+{
+  @autoreleasepool
+  {
+    MTLScissorRect scissorRect =
+    {
+      .x = NSUInteger(x),
+      .y = NSUInteger(y),
+      .width = NSUInteger(w),
+      .height = NSUInteger(h)
+    };
+
+    [m_ActiveRenderEncoder setScissorRect: scissorRect];
   }
 }
 
