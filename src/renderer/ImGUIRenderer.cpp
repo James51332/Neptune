@@ -180,7 +180,7 @@ void ImGUIRenderer::OnTerminate()
   ImGui::DestroyContext();
 }
 
-void ImGUIRenderer::Render(const Ref<Framebuffer> &framebuffer)
+void ImGUIRenderer::Render()
 {
   ImGui::Render();
   ImDrawData* drawData = ImGui::GetDrawData();

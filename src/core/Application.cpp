@@ -350,7 +350,7 @@ void Application::Run()
         }
         RenderCommand::BeginRenderPass(renderPass);
         
-        ImGUIRenderer::Render(framebuffer);
+        ImGUIRenderer::Render();
         
         RenderCommand::EndRenderPass();
       }

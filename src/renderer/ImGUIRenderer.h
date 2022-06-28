@@ -6,7 +6,6 @@
 #include "renderer/Buffer.h"
 #include "renderer/PipelineState.h"
 #include "renderer/Texture.h"
-#include "renderer/Swapchain.h"
 
 namespace Neptune
 {
@@ -38,7 +37,7 @@ public:
   static void OnTerminate();
   static void OnEvent(Scope<Event>& event);
   
-  static void Render(const Ref<Framebuffer>& fb);
+  static void Render();
   
 private:
   static ImGUIRendererData s_Data;
