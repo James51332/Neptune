@@ -67,7 +67,7 @@ void MetalRenderCommandEncoder::BeginRenderPass(const RenderPass& renderPass)
     
   	MTLRenderPassDescriptor *renderPassDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
     
-  	renderPassDescriptor.colorAttachments[0].texture = framebuffer->GetDrawable().texture;
+  	renderPassDescriptor.colorAttachments[0].texture = StaticRefCast<MetalTexture>(framebuffer->GetColorAttachment())->GetTexture();
   	renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionFromLoadAction(renderPass.LoadAction);
 		renderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionFromStoreAction(renderPass.StoreAction);
   	renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorFromFloat4(renderPass.ClearColor);

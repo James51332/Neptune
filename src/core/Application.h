@@ -37,7 +37,11 @@ private:
   
   EventQueue m_EventQueue;
   Scope<NativeApplication> m_NativeApp;
+  
   Scope<Window> m_Window;
+  Float2 m_ViewportSize = { 800, 600 };
+  Float2 m_LastViewportSize = { 800, 600 };
+  
   Ref<RenderContext> m_RenderContext;
   Ref<RenderDevice> m_RenderDevice;
   Ref<Swapchain> m_Swapchain;

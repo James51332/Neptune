@@ -7,15 +7,24 @@ namespace Neptune
 
 // ----- Framebuffer -----------------
 
+struct FramebufferDesc
+{
+  Size Width;
+  Size Height;
+};
+
 class Framebuffer
 {
 public:
   virtual ~Framebuffer() = default;
   
-  // TODO: We should allow the color attachment to be accessed too.
+  const Ref<Texture>& GetColorAttachment() const noexcept { return m_ColorTexture; }
   const Ref<Texture>& GetDepthAttachment() const noexcept { return m_DepthTexture; }
   
-protected:  
+  virtual void Resize(Size width, Size height) = 0;
+  
+protected:
+  Ref<Texture> m_ColorTexture;
   Ref<Texture> m_DepthTexture;
 };
 

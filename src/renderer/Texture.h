@@ -13,6 +13,7 @@ enum class TextureType
 enum class PixelFormat
 {
   RGBA8Unorm,
+  BGRA8Unorm,
   Depth32
 };
 

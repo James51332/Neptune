@@ -7,6 +7,7 @@
 #include "MetalCommandBuffer.h"
 #include "MetalBuffer.h"
 #include "MetalTexture.h"
+#include "MetalSwapchain.h"
 
 #import <Metal/MTLDevice.h>
 #import <Metal/MTLCommandQueue.h>
@@ -58,6 +59,12 @@ Ref<Buffer> MetalRenderDevice::CreateBuffer(const BufferDesc &desc)
   Ref<Buffer> buffer = CreateRef<MetalBuffer>((id<MTLDevice>)m_Device, desc);
   m_Buffers.PushBack(buffer);
   return buffer;
+}
+
+Ref<Framebuffer> MetalRenderDevice::CreateFramebuffer(const FramebufferDesc &desc)
+{
+  Ref<Framebuffer> framebuffer = CreateRef<MetalFramebuffer>((id<MTLDevice>)m_Device, desc);
+  return framebuffer;
 }
 
 Ref<Texture> MetalRenderDevice::CreateTexture(const TextureDesc& desc)

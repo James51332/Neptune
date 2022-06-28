@@ -15,26 +15,23 @@ class MetalFramebuffer final : public Framebuffer
   friend class MetalSwapchain;
   
 public:
-  MetalFramebuffer(id<MTLDevice> device, CAMetalLayer* layer, Size width, Size height);
+  MetalFramebuffer(id<MTLDevice> device, const FramebufferDesc& desc);
   ~MetalFramebuffer();
-  
-  id<CAMetalDrawable> GetDrawable();
-  void Present();
   
   void Resize(Size width, Size height);
   Size GetWidth() { return m_Width; }
   Size GetHeight() { return m_Height; }
   
 private:
+  MetalFramebuffer(id<MTLDevice> device, CAMetalLayer* layer, Size width, Size height);
+  
+  void CreateColorTexture();
   void CreateDepthTexture();
   
 private:
-  CAMetalLayer* m_Layer = nil;
-  id<CAMetalDrawable> m_Drawable = nil;
-  
+  id<MTLDevice> m_Device;
   Size m_Width, m_Height;
-  
-  bool m_Available = true;
+  bool m_InSwapchain;
 };
 
 // ----- MetalSwapchain -----------------

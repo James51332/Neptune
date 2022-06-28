@@ -18,6 +18,7 @@
 #include "renderer/Texture.h"
 #include "renderer/Camera.h"
 #include "renderer/ImGUIRenderer.h"
+#include "renderer/Swapchain.h"
 
 #include <imgui/imgui.h>
 
@@ -117,6 +118,12 @@ void Application::Run()
       { PipelineAttributeType::Float2, "TexCoord" },
       { PipelineAttributeType::UChar4, "Color", true }
     };
+    
+    DepthStencilState depth;
+    depth.Function = CompareFunction::Less;
+    depth.DepthWriteEnabled = true;
+    desc.DepthStencilState = depth;
+    
     pipeline = m_RenderDevice->CreatePipelineState(desc);
   }
   
@@ -225,10 +232,18 @@ void Application::Run()
     drawCmd.Indexed = true;
     drawCmd.IndexBuffer = indexBuffer;
     drawCmd.IndexType = IndexType::UInt16;
-    
     drawCmd.Type = PrimitiveType::Triangle;
     drawCmd.Offset = 0;
     drawCmd.Count = indexBuffer->GetSize() / sizeof(UInt16);
+  }
+  
+  // Create framebuffer
+  Ref<Framebuffer> framebuffer;
+  {
+    FramebufferDesc desc;
+    desc.Width = m_ViewportSize.x;
+    desc.Height = m_ViewportSize.y;
+    framebuffer = m_RenderDevice->CreateFramebuffer(desc);
   }
   
   m_Running = true;
@@ -250,7 +265,7 @@ void Application::Run()
         return true;
       });
       
-      EventQueue::Dispatch<WindowResizedEvent>(e, [=](const WindowResizedEvent& event) {
+      EventQueue::Dispatch<WindowResizedEvent>(e, [&](const WindowResizedEvent& event) {
         m_Swapchain->Resize(event.GetWidth(), event.GetHeight());
         return false;
       });
@@ -273,38 +288,76 @@ void Application::Run()
       uniformBuffer->Update(sizeof(Matrix4), &camera.GetViewProjectionMatrix()[0][0]);
     }
     
+    // Resize framebuffer
+    if (m_ViewportSize != m_LastViewportSize)
+      framebuffer->Resize(m_ViewportSize.x, m_ViewportSize.y);
+    
     // Render
     {
-      Ref<Framebuffer> framebuffer = m_Swapchain->GetNextFramebuffer();
+      CommandBuffer commandBuffer;
+      RenderCommand::BeginRecording(commandBuffer);
+      {
+        RenderPass renderPass;
+        {
+          renderPass.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+          renderPass.LoadAction = LoadAction::Clear;
+          renderPass.StoreAction = StoreAction::Store;
+          renderPass.Framebuffer = framebuffer;
+        }
+        RenderCommand::BeginRenderPass(renderPass);
+
+        RenderCommand::SetVertexBuffer(vertexBuffer, 0);
+        RenderCommand::SetVertexBuffer(uniformBuffer, 1);
+        RenderCommand::SetPipelineState(pipeline);
+        RenderCommand::BindTexture(texture, 0);
+
+        RenderCommand::Submit(drawCmd);
+        
+        RenderCommand::EndRenderPass();
+      }
+      RenderCommand::EndRecording();
+      m_RenderDevice->Submit(commandBuffer);
+    }
+    
+  	// ImGui
+    {
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0,0});
+      ImGui::Begin("Viewport");
       
-      ImGui::ShowDemoWindow();
+      ImVec2 viewSize = ImGui::GetContentRegionAvail();
+      ImGui::Image((void*)&framebuffer->GetColorAttachment(), ImVec2(m_ViewportSize.x, m_ViewportSize.y));
       
-      ImGUIRenderer::Render(framebuffer);
+      m_LastViewportSize = m_ViewportSize;
+      m_ViewportSize = { viewSize.x, viewSize.y };
       
-//      CommandBuffer commandBuffer;
-//      RenderCommand::BeginRecording(commandBuffer);
-//      {
-//        RenderPass renderPass;
-//        {
-//          renderPass.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-//          renderPass.LoadAction = LoadAction::Load;
-//          renderPass.Framebuffer = framebuffer;
-//        }
-//        RenderCommand::BeginRenderPass(renderPass);
-//
-//        RenderCommand::SetVertexBuffer(vertexBuffer, 0);
-//        RenderCommand::SetVertexBuffer(uniformBuffer, 1);
-//        RenderCommand::SetPipelineState(pipeline);
-//        RenderCommand::BindTexture(texture, 0);
-//
-//        RenderCommand::Submit(drawCmd);
-//
-//        RenderCommand::EndRenderPass();
-//      }
-//      RenderCommand::EndRecording();
-//      
-//      m_RenderDevice->Submit(commandBuffer);
-      m_Swapchain->Present(framebuffer);
+      ImGui::End();
+      ImGui::PopStyleVar();
+    }
+    
+    // Render ImGui
+    {
+      Ref<Framebuffer> fb = m_Swapchain->GetNextFramebuffer();
+      
+      CommandBuffer commandBuffer;
+      RenderCommand::BeginRecording(commandBuffer);
+      {
+        RenderPass renderPass;
+        {
+          renderPass.ClearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
+          renderPass.LoadAction = LoadAction::Clear;
+          renderPass.StoreAction = StoreAction::Store;
+          renderPass.Framebuffer = fb;
+        }
+        RenderCommand::BeginRenderPass(renderPass);
+        
+        ImGUIRenderer::Render(framebuffer);
+        
+        RenderCommand::EndRenderPass();
+      }
+      RenderCommand::EndRecording();
+      m_RenderDevice->Submit(commandBuffer);
+      
+      m_Swapchain->Present(fb);
     }
   }
   

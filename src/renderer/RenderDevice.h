@@ -19,6 +19,7 @@ public:
   virtual Ref<Shader> CreateShader(const ShaderDesc& desc) = 0;
   virtual Ref<PipelineState> CreatePipelineState(const PipelineStateDesc& desc) = 0;
   virtual Ref<Buffer> CreateBuffer(const BufferDesc& desc) = 0;
+  virtual Ref<Framebuffer> CreateFramebuffer(const FramebufferDesc& desc) = 0;
   
   virtual Ref<Texture> CreateTexture(const TextureDesc& desc) = 0;
   virtual Ref<Texture> LoadTexture(const String& path) = 0;

@@ -200,72 +200,60 @@ void ImGUIRenderer::Render(const Ref<Framebuffer> &framebuffer)
     s_Data.UniformBuffer->Update(sizeof(Matrix4), &viewProj[0][0]);
   }
   
-  // Begin Recording Commandbuffer
+  // Render
   {
-    CommandBuffer commandBuffer;
-    RenderCommand::BeginRecording(commandBuffer);
+    // Will project scissor/clipping rectangles into framebuffer space
+    ImVec2 clipOff = drawData->DisplayPos;         // (0,0) unless using multi-viewports
+    ImVec2 clipScale = drawData->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
+
+    for (Size i = 0; i < drawData->CmdListsCount; i++)
     {
-      RenderPass renderPass;
-      {
-        renderPass.ClearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
-        renderPass.LoadAction = LoadAction::Clear;
-        renderPass.StoreAction = StoreAction::Store;
-        renderPass.Framebuffer = framebuffer;
-      }
-      RenderCommand::BeginRenderPass(renderPass);
+      const ImDrawList* commandList = drawData->CmdLists[i];
       
-      // Will project scissor/clipping rectangles into framebuffer space
-      ImVec2 clipOff = drawData->DisplayPos;         // (0,0) unless using multi-viewports
-      ImVec2 clipScale = drawData->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
-
-      for (Size i = 0; i < drawData->CmdListsCount; i++)
+      s_Data.NextBuffer = (s_Data.NextBuffer + 1) % s_Data.NumBuffers;
+      s_Data.VertexBuffers[s_Data.NextBuffer]->Update(commandList->VtxBuffer.Size * sizeof(ImDrawVert), commandList->VtxBuffer.Data);
+      s_Data.IndexBuffers[s_Data.NextBuffer]->Update(commandList->IdxBuffer.Size * sizeof(ImDrawIdx), commandList->IdxBuffer.Data);
+      
+      for (Size cmd_i = 0; cmd_i < commandList->CmdBuffer.Size; cmd_i++)
       {
-        const ImDrawList* commandList = drawData->CmdLists[i];
+        const ImDrawCmd* cmd = &commandList->CmdBuffer[(int)cmd_i];
         
-        s_Data.NextBuffer = (s_Data.NextBuffer + 1) % s_Data.NumBuffers;
-        s_Data.VertexBuffers[s_Data.NextBuffer]->Update(commandList->VtxBuffer.Size * sizeof(ImDrawVert), commandList->VtxBuffer.Data);
-        s_Data.IndexBuffers[s_Data.NextBuffer]->Update(commandList->IdxBuffer.Size * sizeof(ImDrawIdx), commandList->IdxBuffer.Data);
+        // Project scissor/clipping rectangles into framebuffer space
+        ImVec2 clipMin((cmd->ClipRect.x - clipOff.x) * clipScale.x, (cmd->ClipRect.y - clipOff.y) * clipScale.y);
+        ImVec2 clipMax((cmd->ClipRect.z - clipOff.x) * clipScale.x, (cmd->ClipRect.w - clipOff.y) * clipScale.y);
         
-        for (Size cmd_i = 0; cmd_i < commandList->CmdBuffer.Size; cmd_i++)
-        {
-          const ImDrawCmd* cmd = &commandList->CmdBuffer[(int)cmd_i];
-          
-          // Project scissor/clipping rectangles into framebuffer space
-          ImVec2 clipMin((cmd->ClipRect.x - clipOff.x) * clipScale.x, (cmd->ClipRect.y - clipOff.y) * clipScale.y);
-          ImVec2 clipMax((cmd->ClipRect.z - clipOff.x) * clipScale.x, (cmd->ClipRect.w - clipOff.y) * clipScale.y);
-          
-          // Clamp to viewport as setScissorRect() won't accept values that are off bounds
-          if (clipMin.x < 0.0f) { clipMin.x = 0.0f; }
-          if (clipMin.y < 0.0f) { clipMin.y = 0.0f; }
-          if (clipMax.x > framebufferWidth) { clipMax.x = (float)framebufferWidth; }
-          if (clipMax.y > framebufferHeight) { clipMax.y = (float)framebufferHeight; }
-          if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y)
-            continue;
-          if (cmd->ElemCount == 0) // drawIndexedPrimitives() validation doesn't accept this
-            continue;
+        // Clamp to viewport as setScissorRect() won't accept values that are off bounds
+        if (clipMin.x < 0.0f) { clipMin.x = 0.0f; }
+        if (clipMin.y < 0.0f) { clipMin.y = 0.0f; }
+        if (clipMax.x > framebufferWidth) { clipMax.x = (float)framebufferWidth; }
+        if (clipMax.y > framebufferHeight) { clipMax.y = (float)framebufferHeight; }
+        if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y)
+          continue;
+        if (cmd->ElemCount == 0) // drawIndexedPrimitives() validation doesn't accept this
+          continue;
 
-          RenderCommand::SetClipRect(clipMin.x, clipMin.y, clipMax.x - clipMin.x, clipMax.y - clipMin.y);
-          RenderCommand::SetPipelineState(s_Data.PipelineState);
-          RenderCommand::SetVertexBuffer(s_Data.VertexBuffers[s_Data.NextBuffer], 0);
-          RenderCommand::SetVertexBuffer(s_Data.UniformBuffer, 1);
-          RenderCommand::BindTexture(s_Data.FontTexture, 0);
-          
-          DrawCommandDesc drawCmd;
-          {
-          	drawCmd.Type = PrimitiveType::Triangle;
-          	drawCmd.Indexed = true;
-            drawCmd.IndexBuffer = s_Data.IndexBuffers[s_Data.NextBuffer];
-          	drawCmd.Count = cmd->ElemCount;
-          	drawCmd.IndexType = sizeof(ImDrawIdx) == 2 ? IndexType::UInt16 : IndexType::UInt32;
-          	drawCmd.Offset = cmd->IdxOffset * sizeof(ImDrawIdx);
-          }
-          RenderCommand::Submit(drawCmd);
+        RenderCommand::SetClipRect(clipMin.x, clipMin.y, clipMax.x - clipMin.x, clipMax.y - clipMin.y);
+        RenderCommand::SetPipelineState(s_Data.PipelineState);
+        RenderCommand::SetVertexBuffer(s_Data.VertexBuffers[s_Data.NextBuffer], 0);
+        RenderCommand::SetVertexBuffer(s_Data.UniformBuffer, 1);
+        
+        if (cmd->GetTexID() == 0)
+        	RenderCommand::BindTexture(s_Data.FontTexture, 0);
+        else
+          RenderCommand::BindTexture(*reinterpret_cast<Ref<Texture>*>(cmd->GetTexID()), 0);
+        
+        DrawCommandDesc drawCmd;
+        {
+          drawCmd.Type = PrimitiveType::Triangle;
+          drawCmd.Indexed = true;
+          drawCmd.IndexBuffer = s_Data.IndexBuffers[s_Data.NextBuffer];
+          drawCmd.Count = cmd->ElemCount;
+          drawCmd.IndexType = sizeof(ImDrawIdx) == 2 ? IndexType::UInt16 : IndexType::UInt32;
+          drawCmd.Offset = cmd->IdxOffset * sizeof(ImDrawIdx);
         }
+        RenderCommand::Submit(drawCmd);
       }
-      RenderCommand::EndRenderPass();
     }
-    RenderCommand::EndRecording();
-    s_Data.Device->Submit(commandBuffer);
   }
 }
 

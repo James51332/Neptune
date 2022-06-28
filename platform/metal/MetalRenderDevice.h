@@ -20,6 +20,7 @@ public:
   Ref<Shader> CreateShader(const ShaderDesc& desc);
   Ref<PipelineState> CreatePipelineState(const PipelineStateDesc& desc);
   Ref<Buffer> CreateBuffer(const BufferDesc& desc);
+  Ref<Framebuffer> CreateFramebuffer(const FramebufferDesc& desc);
   
   Ref<Texture> CreateTexture(const TextureDesc& desc);
   Ref<Texture> LoadTexture(const String& path);

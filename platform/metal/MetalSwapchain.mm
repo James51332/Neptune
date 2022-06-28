@@ -8,33 +8,34 @@ namespace Neptune
 
 // ----- MetalFramebuffer -----------------
 
-MetalFramebuffer::MetalFramebuffer(id<MTLDevice> device, CAMetalLayer* layer, Size width, Size height)
-	: m_Layer(layer), m_Width(width), m_Height(height)
+MetalFramebuffer::MetalFramebuffer(id<MTLDevice> device, const FramebufferDesc& desc)
+	: m_Device(device), m_Width(desc.Width), m_Height(desc.Height), m_InSwapchain(false)
 {
+  CreateColorTexture();
+  CreateDepthTexture();
+}
+
+MetalFramebuffer::MetalFramebuffer(id<MTLDevice> device, CAMetalLayer* layer, Size width, Size height)
+: m_Device(device), m_Width(width), m_Height(height), m_InSwapchain(true)
+{
+  {
+    TextureDesc colorDesc;
+    colorDesc.Type = TextureType::Texture2D;
+    colorDesc.Mipmapped = false;
+    colorDesc.Width = m_Width;
+    colorDesc.Height = m_Height;
+    colorDesc.PixelFormat = PixelFormat::BGRA8Unorm;
+    colorDesc.Data = nullptr;
+    colorDesc.RenderTarget = true;
+    
+    m_ColorTexture = CreateRef<MetalSwapchainTexture>(device, layer, colorDesc);
+  }
+    
   CreateDepthTexture();
 }
 
 MetalFramebuffer::~MetalFramebuffer()
 {
-  @autoreleasepool
-  {
-    [m_Drawable release];
-    m_Drawable = nil;
-  }
-}
-
-id<CAMetalDrawable> MetalFramebuffer::GetDrawable()
-{
-  @autoreleasepool
-  {
-  	if (m_Available)
-  	{
-  	  m_Drawable = [[m_Layer nextDrawable] retain];
-  	  m_Available = false; // TODO: Thread safety.
-  	}
-  
-  	return m_Drawable;
-  }
 }
 
 void MetalFramebuffer::Resize(Size width, Size height)
@@ -42,59 +43,64 @@ void MetalFramebuffer::Resize(Size width, Size height)
   m_Width = width > m_Width ? width : m_Width;
   m_Height = height > m_Height ? height : m_Height;
   
+  if (!m_InSwapchain) CreateColorTexture();
   CreateDepthTexture();
 }
 
-void MetalFramebuffer::Present()
+void MetalFramebuffer::CreateColorTexture()
 {
-  @autoreleasepool
-  {
-  	// TODO: Present via commandbuffer is usually better
-  	[m_Drawable present];
+  TextureDesc colorDesc;
+  colorDesc.Type = TextureType::Texture2D;
+  colorDesc.Mipmapped = false;
+  colorDesc.Width = m_Width;
+  colorDesc.Height = m_Height;
+  colorDesc.PixelFormat = PixelFormat::BGRA8Unorm;
+  colorDesc.Data = nullptr;
+  colorDesc.RenderTarget = true;
   
-    [m_Drawable release];
-  	m_Drawable = nil;
-  	m_Available = true;
-  }
+  m_ColorTexture = CreateRef<MetalTexture>(m_Device, colorDesc);
 }
 
 void MetalFramebuffer::CreateDepthTexture()
 {
-  @autoreleasepool
-  {
-    TextureDesc depthDesc;
-    depthDesc.Type = TextureType::Texture2D;
-    depthDesc.Mipmapped = false;
-    depthDesc.Width = m_Width;
-    depthDesc.Height = m_Height;
-    depthDesc.PixelFormat = PixelFormat::Depth32;
-    depthDesc.Data = nullptr;
-    depthDesc.RenderTarget = true;
-    
-    m_DepthTexture = CreateRef<MetalTexture>(m_Layer.device, depthDesc);
-  }
+  TextureDesc depthDesc;
+  depthDesc.Type = TextureType::Texture2D;
+  depthDesc.Mipmapped = false;
+  depthDesc.Width = m_Width;
+  depthDesc.Height = m_Height;
+  depthDesc.PixelFormat = PixelFormat::Depth32;
+  depthDesc.Data = nullptr;
+  depthDesc.RenderTarget = true;
+  
+  m_DepthTexture = CreateRef<MetalTexture>(m_Device, depthDesc);
 }
 
 // ----- MetalSwapchain -----------------
 
 MetalSwapchain::MetalSwapchain(id<MTLDevice> device, CAMetalLayer* layer, Size width, Size height)
-	: m_Layer(layer)
+	: m_Layer([layer retain])
 {
   constexpr Size numImages = 3;
   for (Size i = 0; i < numImages; i++)
   {
-    m_Framebuffers.PushBack(CreateRef<MetalFramebuffer>(device, layer, width, height));
+    // Can't use b/c it's a private constructor
+    // m_Framebuffers.PushBack(CreateRef<MetalFramebuffer>(device, layer, width, height));
+    m_Framebuffers.PushBack(Ref<MetalFramebuffer>(new MetalFramebuffer(device, layer, width, height)));
   }
 }
 
 MetalSwapchain::~MetalSwapchain()
 {
-  m_Layer = nil;
+  @autoreleasepool
+  {
+    [m_Layer release];
+    m_Layer = nil;
+  }
 }
 
 void MetalSwapchain::Resize(Size width, Size height)
 {
-  [m_Layer setDrawableSize:CGSizeMake((CGFloat)width, (CGFloat)height)];
+  [m_Layer setDrawableSize: CGSizeMake((CGFloat)width, (CGFloat)height)];
 	for (auto& fb : m_Framebuffers)
   {
     fb->Resize(width, height);
@@ -115,7 +121,7 @@ Ref<Framebuffer> MetalSwapchain::GetNextFramebuffer() noexcept
 
 void MetalSwapchain::Present(const Ref<Framebuffer>& framebuffer)
 {
-  StaticRefCast<MetalFramebuffer>(framebuffer)->Present();
+  StaticRefCast<MetalSwapchainTexture>(framebuffer->GetColorAttachment())->Present();
 }
 
 } // namespace Neptune
