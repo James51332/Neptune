@@ -75,7 +75,13 @@ void ImGUIRenderer::OnInit(const Ref<RenderDevice>& device, Size width, Size hei
   	
   	io.BackendPlatformName = "Neptune";
   	io.BackendRendererName = "Neptune Renderer";
-  	
+    
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    
+    // TODO: Mouse cursors
+    // io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
+    // io.ConfigWindowsResizeFromEdges = true;
+    
   	io.KeyMap[ImGuiKey_Tab] = KeyCode::KeyTab;
   	io.KeyMap[ImGuiKey_LeftArrow] = KeyCode::KeyLeft;
   	io.KeyMap[ImGuiKey_RightArrow] = KeyCode::KeyRight;
@@ -173,6 +179,7 @@ void ImGUIRenderer::OnInit(const Ref<RenderDevice>& device, Size width, Size hei
 void ImGUIRenderer::OnUpdate()
 {
   ImGui::NewFrame();
+  ImGui::DockSpaceOverViewport();
 }
 
 void ImGUIRenderer::OnTerminate()
