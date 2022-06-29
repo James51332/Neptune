@@ -92,12 +92,22 @@ fragment float4 fragmentFunc(FSInput in [[stage_in]],
  	return colorTexture.sample(textureSampler, in.texCoord) * in.color;
 })";
 
-
 void Application::Run()
 {
   
   // Initialization
   m_Window->Show();
+  
+  // Create framebuffers
+  {
+    FramebufferDesc desc;
+    desc.Width = m_ViewportSize.x;
+    desc.Height = m_ViewportSize.y;
+    
+    // TODO: Extract in-flight frames to global
+    for (Size i = 0; i < 3; i++)
+    	m_Framebuffers.PushBack(m_RenderDevice->CreateFramebuffer(desc));
+  }
   
   // Create Pipeline State
   Ref<PipelineState> pipeline;
@@ -233,15 +243,6 @@ void Application::Run()
     drawCmd.Count = indexBuffer->GetSize() / sizeof(UInt16);
   }
   
-  // Create framebuffer
-  Ref<Framebuffer> framebuffer;
-  {
-    FramebufferDesc desc;
-    desc.Width = m_ViewportSize.x;
-    desc.Height = m_ViewportSize.y;
-    framebuffer = m_RenderDevice->CreateFramebuffer(desc);
-  }
-  
   constexpr Size framesInFlight = 3;
   Size frame = 0;
   DynamicArray<Ref<Fence>> fences;
@@ -258,6 +259,9 @@ void Application::Run()
   {
     m_NativeApp->PollEvents();
     Input::OnUpdate(); // Begin new Input frame
+
+    // Update In-Flight Frame Number (Don't block until rendering needs to begin)
+    frame = (frame + 1) % framesInFlight;
         
     // Event Stage
     Scope<Event> e;
@@ -281,45 +285,49 @@ void Application::Run()
     ImGUIRenderer::OnUpdate();
     
     // Camera Movement
-    // TEMP: Don't want to worry about triple buffering right now
     {
-//    	Float3 translate = Float3(0.0f);
-//
-//      if (Input::KeyDown(KeyCode::KeyD)) translate.x += 0.05f;
-//      if (Input::KeyDown(KeyCode::KeyA)) translate.x -= 0.05f;
-//      if (Input::KeyDown(KeyCode::KeyW)) translate.y += 0.05f;
-//      if (Input::KeyDown(KeyCode::KeyS)) translate.y -= 0.05f;
-//
-//      CameraDesc desc = camera.GetDesc();
-//      desc.Position += translate;
-//      camera.SetDesc(desc);
-//      uniformBuffer->Update(sizeof(Matrix4), &camera.GetViewProjectionMatrix()[0][0]);
+    	Float3 translate = Float3(0.0f);
+
+      if (Input::KeyDown(KeyCode::KeyD)) translate.x += 0.05f;
+      if (Input::KeyDown(KeyCode::KeyA)) translate.x -= 0.05f;
+      if (Input::KeyDown(KeyCode::KeyW)) translate.y += 0.05f;
+      if (Input::KeyDown(KeyCode::KeyS)) translate.y -= 0.05f;
+
+      CameraDesc desc = camera.GetDesc();
+      desc.Position += translate;
+      camera.SetDesc(desc);
+      uniformBuffer->Update(sizeof(Matrix4), &camera.GetViewProjectionMatrix()[0][0]);
     }
     
-    // Resize framebuffer
-//    if (m_ViewportSize != m_LastViewportSize)
-//      framebuffer->Resize(m_ViewportSize.x, m_ViewportSize.y);
+    // Resize Framebuffer and Camera
+    {
+      FramebufferDesc desc = m_Framebuffers[frame]->GetDesc();
+      if (desc.Width != m_ViewportSize.x || desc.Height != m_ViewportSize.y)
+        m_Framebuffers[frame]->Resize(m_ViewportSize.x, m_ViewportSize.y);
+      
+      CameraDesc camDesc = camera.GetDesc();
+      camDesc.Width = m_ViewportSize.x;
+      camDesc.Height = m_ViewportSize.y;
+      camera.SetDesc(camDesc);
+    }
     
     // ImGui
     {
       ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0,0});
       ImGui::Begin("Viewport");
       
-      //ImVec2 viewSize = ImGui::GetContentRegionAvail();
-      ImGui::Image((void*)&framebuffer->GetColorAttachment(), ImVec2(m_ViewportSize.x, m_ViewportSize.y));
-      
-      m_LastViewportSize = m_ViewportSize;
-      //m_ViewportSize = { viewSize.x, viewSize.y };
+      ImVec2 viewSize = ImGui::GetContentRegionAvail();
+      ImGui::Image((void*)&m_Framebuffers[frame]->GetColorAttachment(), ImVec2(m_ViewportSize.x, m_ViewportSize.y));
+      m_ViewportSize = { viewSize.x, viewSize.y };
       
       ImGui::End();
       ImGui::PopStyleVar();
     }
     
-    frame = (frame + 1) % framesInFlight;
+    // Render
     m_RenderDevice->WaitForFence(fences[frame]);
     m_RenderDevice->ResetFence(fences[frame]);
     
-    // Render
     Ref<Framebuffer> swapchainFramebuffer = m_Swapchain->GetNextFramebuffer();
     
     CommandBuffer commandBuffer;
@@ -332,7 +340,7 @@ void Application::Run()
           scenePass.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
           scenePass.LoadAction = LoadAction::Clear;
           scenePass.StoreAction = StoreAction::Store;
-          scenePass.Framebuffer = framebuffer;
+          scenePass.Framebuffer = m_Framebuffers[frame];
         }
         RenderCommand::BeginRenderPass(scenePass);
 	
@@ -367,6 +375,7 @@ void Application::Run()
     m_Swapchain->Present(swapchainFramebuffer);
   }
 
+  // We don't want to destroy any GPU resources that may still be required to complete rendering yet.
   m_RenderDevice->WaitIdle();
   
   // Shutdown

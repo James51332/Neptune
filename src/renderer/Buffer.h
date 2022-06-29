@@ -35,7 +35,8 @@ public:
   BufferUsage GetUsage() const noexcept { return m_Usage; }
   BufferType GetType() const noexcept { return m_Type; }
   
-  // For dynamic buffers, updates the contents
+  // For dynamic buffers, updates the contents. Dynamic buffers are triple-backed, so even
+  // with multiple frames-in-flight, no gpu synchronization is need for this operation
   virtual void Update(Size size, const void* data) = 0;
   
 protected:

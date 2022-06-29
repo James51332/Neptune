@@ -16,11 +16,8 @@ struct ImGUIRendererData
 {
   Ref<RenderDevice> Device;
   
-  // We want to have multiple buffers as backups since they are stored until after
-  // the frame for the command buffer.
-  // TEMP: Don't want to worry about triple buffering rn
-  // TODO: Triple-back dynamic buffers
-  constexpr static Int32 NumBuffers = 30;
+	// This is an estimate as to how many DrawLists ImGui will max out at.
+  constexpr static Int32 NumBuffers = 15;
   Ref<Buffer> VertexBuffers[NumBuffers];
   Ref<Buffer> IndexBuffers[NumBuffers];
   Ref<Buffer> UniformBuffer;

@@ -11,6 +11,7 @@ namespace Neptune
 MetalFramebuffer::MetalFramebuffer(id<MTLDevice> device, const FramebufferDesc& desc)
 	: m_Device(device), m_Width(desc.Width), m_Height(desc.Height), m_InSwapchain(false)
 {
+  m_Desc = desc;
   CreateColorTexture();
   CreateDepthTexture();
 }
@@ -42,6 +43,8 @@ void MetalFramebuffer::Resize(Size width, Size height)
 {
   m_Width = width > m_Width ? width : m_Width;
   m_Height = height > m_Height ? height : m_Height;
+  m_Desc.Width = m_Width;
+  m_Desc.Height = m_Height;
   
   if (!m_InSwapchain) CreateColorTexture();
   CreateDepthTexture();

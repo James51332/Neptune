@@ -120,7 +120,7 @@ void MetalRenderCommandEncoder::SetVertexBuffer(const Ref<Buffer> &buffer, Size 
   @autoreleasepool
   {
     [m_ActiveRenderEncoder setVertexBuffer: StaticRefCast<MetalBuffer>(buffer)->GetBuffer()
-                                    offset: 0
+                                    offset: StaticRefCast<MetalBuffer>(buffer)->GetOffset()
                                    atIndex: index];
   }
 }
@@ -143,7 +143,7 @@ void MetalRenderCommandEncoder::SetClipRect(Size x, Size y, Size w, Size h)
 
 void MetalRenderCommandEncoder::BindTexture(const Ref<Texture>& texture, Size index)
 {
-  NEPTUNE_ASSERT(m_RenderPass, "Unable to bind buffer as vertex buffer!");
+  NEPTUNE_ASSERT(m_RenderPass, "Begin RenderPass before binding texture");
   @autoreleasepool
   {
     [m_ActiveRenderEncoder setFragmentTexture: StaticRefCast<MetalTexture>(texture)->GetTexture()
@@ -192,7 +192,7 @@ void MetalRenderCommandEncoder::Submit(const DrawCommandDesc &desc)
                                         indexCount: desc.Count
                                          indexType: MTLIndexTypeFromIndexType(desc.IndexType)
                                        indexBuffer: StaticRefCast<MetalBuffer>(desc.IndexBuffer)->GetBuffer()
-                                 indexBufferOffset: desc.Offset];
+                                 indexBufferOffset: StaticRefCast<MetalBuffer>(desc.IndexBuffer)->GetOffset() + desc.Offset];
     }
   }
 }

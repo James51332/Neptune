@@ -20,10 +20,12 @@ public:
   
   const Ref<Texture>& GetColorAttachment() const noexcept { return m_ColorTexture; }
   const Ref<Texture>& GetDepthAttachment() const noexcept { return m_DepthTexture; }
+  const FramebufferDesc& GetDesc() const noexcept { return m_Desc; }
   
   virtual void Resize(Size width, Size height) = 0;
   
 protected:
+  FramebufferDesc m_Desc;
   Ref<Texture> m_ColorTexture;
   Ref<Texture> m_DepthTexture;
 };
