@@ -1,6 +1,9 @@
 #include "neptunepch.h"
 #include "MetalSync.h"
 
+#include <chrono>
+using namespace std::chrono_literals;
+
 namespace Neptune
 {
 
@@ -111,14 +114,35 @@ MetalFence::~MetalFence()
 {
 }
 
-void MetalFence::Signal() noexcept
+void MetalFence::Signal()
 {
-  m_Signaled = true;
+  {
+    Guard<Mutex> guard(m_SignaledMutex);
+    m_Signaled = true;
+  }
+  m_ConditionVariable.notify_all();
 }
 
-void MetalFence::Reset() noexcept
+void MetalFence::Reset()
 {
+  Guard<Mutex> guard(m_SignaledMutex);
   m_Signaled = false;
 }
+
+void MetalFence::Wait(Float32 timeoutInMs)
+{
+  UniqueLock<Mutex> lock(m_SignaledMutex);
+  if (timeoutInMs <= 0.0f)
+    m_ConditionVariable.wait(lock, [&]() { return m_Signaled; });
+  else
+    m_ConditionVariable.wait_for(lock, timeoutInMs*(1ms), [&]() { return m_Signaled; });
+}
+
+bool MetalFence::Status()
+{
+  Guard<Mutex> guard(m_SignaledMutex);
+  return m_Signaled;
+}
+
 
 } // namespace Neptune

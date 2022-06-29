@@ -1,6 +1,7 @@
 #include "neptunepch.h"
 #include "MetalRenderDevice.h"
 
+#include "MetalSync.h"
 #include "MetalShader.h"
 #include "MetalPipelineState.h"
 #include "MetalRenderCommand.h"
@@ -25,6 +26,10 @@ MetalRenderDevice::MetalRenderDevice()
   	m_Queue = [((id<MTLDevice>)m_Device) newCommandQueue];
   	m_Registry = CreateRef<MetalCommandBufferRegistry>((id<MTLCommandQueue>)m_Queue);
   	m_Encoder = CreateRef<MetalRenderCommandEncoder>((id<MTLDevice>)m_Device, m_Registry);
+    
+    FenceDesc fenceDesc;
+    fenceDesc.Signaled = true;
+    m_IdleFence = CreateRef<MetalFence>((id<MTLDevice>)m_Device, fenceDesc);
   }
 }
 
@@ -40,6 +45,21 @@ MetalRenderDevice::~MetalRenderDevice()
 Ref<RenderCommandEncoder> MetalRenderDevice::GetEncoder() noexcept
 {
   return m_Encoder;
+}
+
+Ref<Fence> MetalRenderDevice::CreateFence(const FenceDesc& desc)
+{
+  return CreateRef<MetalFence>((id<MTLDevice>)m_Device, desc);
+}
+
+void MetalRenderDevice::WaitForFence(const Ref<Fence>& fence, Float32 timeoutInMs)
+{
+  StaticRefCast<MetalFence>(fence)->Wait(timeoutInMs);
+}
+
+void MetalRenderDevice::ResetFence(const Ref<Fence>& fence)
+{
+  StaticRefCast<MetalFence>(fence)->Reset();
 }
 
 Ref<Shader> MetalRenderDevice::CreateShader(const ShaderDesc& desc)
@@ -96,7 +116,23 @@ Ref<Texture> MetalRenderDevice::LoadTexture(const String &path)
 
 void MetalRenderDevice::Submit(CommandBuffer buffer)
 {
-  m_Registry->Commit(buffer);
+  if (m_IdleFence->Status())
+    m_IdleFence->Reset();
+  
+  m_Registry->Commit(buffer, m_IdleFence);
+}
+
+void MetalRenderDevice::Submit(CommandBuffer buffer, const Ref<Fence>& fence)
+{
+  if (m_IdleFence->Status())
+    m_IdleFence->Reset();
+  
+  m_Registry->Commit(buffer, fence, m_IdleFence);
+}
+
+void MetalRenderDevice::WaitIdle()
+{
+  m_IdleFence->Wait(1000.0f);
 }
 
 } // namespace Neptune

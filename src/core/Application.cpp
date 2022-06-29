@@ -99,20 +99,16 @@ void Application::Run()
   // Initialization
   m_Window->Show();
   
-  // Create Shader
-  Ref<Shader> shader;
-  {
-    ShaderDesc desc;
-    desc.vertexSrc = shaderSrc;
-    desc.fragmentSrc = shaderSrc;
-    shader = m_RenderDevice->CreateShader(desc);
-  }
-  
   // Create Pipeline State
   Ref<PipelineState> pipeline;
   {
     PipelineStateDesc desc;
-    desc.Shader = shader;
+    
+    ShaderDesc sd;
+    sd.vertexSrc = shaderSrc;
+    sd.fragmentSrc = shaderSrc;
+    desc.Shader = m_RenderDevice->CreateShader(sd);
+    
     desc.Layout = {
       { PipelineAttributeType::Float3, "Position" },
       { PipelineAttributeType::Float2, "TexCoord" },
@@ -246,6 +242,17 @@ void Application::Run()
     framebuffer = m_RenderDevice->CreateFramebuffer(desc);
   }
   
+  constexpr Size framesInFlight = 3;
+  Size frame = 0;
+  DynamicArray<Ref<Fence>> fences;
+  {
+    FenceDesc desc;
+    desc.Signaled = true;
+    
+    for (Size i = 0; i < framesInFlight; ++i)
+      fences.PushBack(m_RenderDevice->CreateFence(desc));
+  }
+  
   m_Running = true;
   while (m_Running)
   {
@@ -274,38 +281,61 @@ void Application::Run()
     ImGUIRenderer::OnUpdate();
     
     // Camera Movement
+    // TEMP: Don't want to worry about triple buffering right now
     {
-    	Float3 translate = Float3(0.0f);
-      
-      if (Input::KeyDown(KeyCode::KeyD)) translate.x += 0.05f;
-      if (Input::KeyDown(KeyCode::KeyA)) translate.x -= 0.05f;
-      if (Input::KeyDown(KeyCode::KeyW)) translate.y += 0.05f;
-      if (Input::KeyDown(KeyCode::KeyS)) translate.y -= 0.05f;
-      
-      CameraDesc desc = camera.GetDesc();
-      desc.Position += translate;
-      camera.SetDesc(desc);
-      uniformBuffer->Update(sizeof(Matrix4), &camera.GetViewProjectionMatrix()[0][0]);
+//    	Float3 translate = Float3(0.0f);
+//
+//      if (Input::KeyDown(KeyCode::KeyD)) translate.x += 0.05f;
+//      if (Input::KeyDown(KeyCode::KeyA)) translate.x -= 0.05f;
+//      if (Input::KeyDown(KeyCode::KeyW)) translate.y += 0.05f;
+//      if (Input::KeyDown(KeyCode::KeyS)) translate.y -= 0.05f;
+//
+//      CameraDesc desc = camera.GetDesc();
+//      desc.Position += translate;
+//      camera.SetDesc(desc);
+//      uniformBuffer->Update(sizeof(Matrix4), &camera.GetViewProjectionMatrix()[0][0]);
     }
     
     // Resize framebuffer
-    if (m_ViewportSize != m_LastViewportSize)
-      framebuffer->Resize(m_ViewportSize.x, m_ViewportSize.y);
+//    if (m_ViewportSize != m_LastViewportSize)
+//      framebuffer->Resize(m_ViewportSize.x, m_ViewportSize.y);
+    
+    // ImGui
+    {
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0,0});
+      ImGui::Begin("Viewport");
+      
+      //ImVec2 viewSize = ImGui::GetContentRegionAvail();
+      ImGui::Image((void*)&framebuffer->GetColorAttachment(), ImVec2(m_ViewportSize.x, m_ViewportSize.y));
+      
+      m_LastViewportSize = m_ViewportSize;
+      //m_ViewportSize = { viewSize.x, viewSize.y };
+      
+      ImGui::End();
+      ImGui::PopStyleVar();
+    }
+    
+    frame = (frame + 1) % framesInFlight;
+    m_RenderDevice->WaitForFence(fences[frame]);
+    m_RenderDevice->ResetFence(fences[frame]);
     
     // Render
+    Ref<Framebuffer> swapchainFramebuffer = m_Swapchain->GetNextFramebuffer();
+    
+    CommandBuffer commandBuffer;
+    RenderCommand::BeginRecording(commandBuffer);
     {
-      CommandBuffer commandBuffer;
-      RenderCommand::BeginRecording(commandBuffer);
+      // Scene Pass
       {
-        RenderPass renderPass;
-        {
-          renderPass.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-          renderPass.LoadAction = LoadAction::Clear;
-          renderPass.StoreAction = StoreAction::Store;
-          renderPass.Framebuffer = framebuffer;
+      	RenderPass scenePass;
+      	{
+          scenePass.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+          scenePass.LoadAction = LoadAction::Clear;
+          scenePass.StoreAction = StoreAction::Store;
+          scenePass.Framebuffer = framebuffer;
         }
-        RenderCommand::BeginRenderPass(renderPass);
-
+        RenderCommand::BeginRenderPass(scenePass);
+	
         RenderCommand::SetVertexBuffer(vertexBuffer, 0);
         RenderCommand::SetVertexBuffer(uniformBuffer, 1);
         RenderCommand::SetPipelineState(pipeline);
@@ -315,38 +345,15 @@ void Application::Run()
         
         RenderCommand::EndRenderPass();
       }
-      RenderCommand::EndRecording();
-      m_RenderDevice->Submit(commandBuffer);
-    }
     
-  	// ImGui
-    {
-      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0,0});
-      ImGui::Begin("Viewport");
-      
-      ImVec2 viewSize = ImGui::GetContentRegionAvail();
-      ImGui::Image((void*)&framebuffer->GetColorAttachment(), ImVec2(m_ViewportSize.x, m_ViewportSize.y));
-      
-      m_LastViewportSize = m_ViewportSize;
-      m_ViewportSize = { viewSize.x, viewSize.y };
-      
-      ImGui::End();
-      ImGui::PopStyleVar();
-    }
-    
-    // Render ImGui
-    {
-      Ref<Framebuffer> fb = m_Swapchain->GetNextFramebuffer();
-      
-      CommandBuffer commandBuffer;
-      RenderCommand::BeginRecording(commandBuffer);
+    	// ImGui (Swapchain Pass)
       {
         RenderPass renderPass;
         {
           renderPass.ClearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
           renderPass.LoadAction = LoadAction::Clear;
           renderPass.StoreAction = StoreAction::Store;
-          renderPass.Framebuffer = fb;
+          renderPass.Framebuffer = swapchainFramebuffer;
         }
         RenderCommand::BeginRenderPass(renderPass);
         
@@ -354,12 +361,13 @@ void Application::Run()
         
         RenderCommand::EndRenderPass();
       }
-      RenderCommand::EndRecording();
-      m_RenderDevice->Submit(commandBuffer);
-      
-      m_Swapchain->Present(fb);
     }
+  	RenderCommand::EndRecording();
+    m_RenderDevice->Submit(commandBuffer, fences[frame]);
+    m_Swapchain->Present(swapchainFramebuffer);
   }
+
+  m_RenderDevice->WaitIdle();
   
   // Shutdown
   m_Window->Close();

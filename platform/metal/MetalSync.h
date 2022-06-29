@@ -44,11 +44,16 @@ public:
   MetalFence(id<MTLDevice> device, const FenceDesc& desc);
   ~MetalFence();
   
-  void Signal() noexcept;
-  void Reset() noexcept;
+  void Signal();
+  void Reset();
+  void Wait(Float32 timeoutInMs = 0.0f);
+  
+  bool Status();
   
 private:
-  Atomic<bool> m_Signaled;
+  bool m_Signaled;
+  Mutex m_SignaledMutex;
+  ConditionVariable m_ConditionVariable;
 };
 
 } // namespace Neptune

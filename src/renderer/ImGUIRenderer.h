@@ -18,7 +18,9 @@ struct ImGUIRendererData
   
   // We want to have multiple buffers as backups since they are stored until after
   // the frame for the command buffer.
-  constexpr static Int32 NumBuffers = 15;
+  // TEMP: Don't want to worry about triple buffering rn
+  // TODO: Triple-back dynamic buffers
+  constexpr static Int32 NumBuffers = 30;
   Ref<Buffer> VertexBuffers[NumBuffers];
   Ref<Buffer> IndexBuffers[NumBuffers];
   Ref<Buffer> UniformBuffer;

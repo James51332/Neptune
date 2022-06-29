@@ -1,12 +1,15 @@
 #pragma once
 
 #include "renderer/CommandBuffer.h"
+#include "renderer/Sync.h"
 
 #import <Metal/MTLCommandQueue.h>
 #import <Metal/MTLCommandBuffer.h>
 
 namespace Neptune
 {
+
+class MetalFence;
 
 // ----- MetalCommandBufferRegistry -----------------
 
@@ -25,7 +28,8 @@ public:
   
   void Register(CommandBuffer& buffer);
   id<MTLCommandBuffer> Get(CommandBuffer buffer);
-  void Commit(CommandBuffer buffer);
+  void Commit(CommandBuffer buffer, Ref<MetalFence>& idleFence);
+  void Commit(CommandBuffer buffer, const Ref<Fence>& fence, Ref<MetalFence>& idleFence);
   void Free(CommandBuffer buffer);
   
 private:

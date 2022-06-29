@@ -1,6 +1,8 @@
 #include "neptunepch.h"
 #include "MetalCommandBuffer.h"
 
+#include "MetalSync.h"
+
 namespace Neptune
 {
 
@@ -49,14 +51,33 @@ id<MTLCommandBuffer> MetalCommandBufferRegistry::Get(CommandBuffer buffer)
   return m_Registry[buffer.ID];
 }
 
-void MetalCommandBufferRegistry::Commit(CommandBuffer buffer)
+void MetalCommandBufferRegistry::Commit(CommandBuffer buffer, Ref<MetalFence>& idleFence)
 {
   NEPTUNE_ASSERT(m_Registry[buffer.ID], "Invalid command buffer");
   
   @autoreleasepool
   {
+    [m_Registry[buffer.ID] addCompletedHandler: ^(id<MTLCommandBuffer> buffer) {
+      idleFence->Signal();
+    }];
+    
   	[m_Registry[buffer.ID] commit];
   	Free(buffer); // We can free after committing.
+  }
+}
+
+void MetalCommandBufferRegistry::Commit(CommandBuffer buffer, const Ref<Fence>& fence, Ref<MetalFence>& idleFence)
+{
+  NEPTUNE_ASSERT(m_Registry[buffer.ID], "Invalid command buffer");
+  
+  @autoreleasepool
+  {
+    [m_Registry[buffer.ID] addCompletedHandler: ^(id<MTLCommandBuffer> buffer) {
+      StaticRefCast<MetalFence>(fence)->Signal();
+      idleFence->Signal();
+    }];
+    [m_Registry[buffer.ID] commit];
+    Free(buffer); // We can free after committing.
   }
 }
 
