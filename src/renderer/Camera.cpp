@@ -23,13 +23,15 @@ void Camera::UpdateMatrices()
 
   if (m_Desc.Type == ProjectionType::Perspective)
   {
-  	m_Projection = glm::perspective(m_Desc.FOV, m_Desc.Width / m_Desc.Height, 0.1f, 10.0f);
+  	m_Projection = glm::perspective(m_Desc.FOV, m_Desc.Aspect, 0.1f, 10.0f);
   } else if (m_Desc.Type == ProjectionType::Orthographic)
   {
-    m_Projection = glm::ortho(m_Desc.Position.x - (m_Desc.Width / 2),
-                              m_Desc.Position.x + (m_Desc.Width / 2),
-                              m_Desc.Position.y - (m_Desc.Height / 2),
-                              m_Desc.Position.y + (m_Desc.Height / 2),
+    Float32 height = (2 / m_Desc.Zoom);
+    Float32 width = m_Desc.Aspect * height;
+    m_Projection = glm::ortho(m_Desc.Position.x - (width / 2),
+                              m_Desc.Position.x + (width / 2),
+                              m_Desc.Position.y - (height / 2),
+                              m_Desc.Position.y + (height / 2),
                               m_Desc.Near,
                               m_Desc.Far);
   }

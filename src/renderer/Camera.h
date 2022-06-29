@@ -20,8 +20,8 @@ struct CameraDesc
   Float3 Rotation = { 0.0f, 0.0f, 0.0f };
   Float32 Near = 0.1f;
   Float32 Far = 100.0f;
-  Float32 Width = 100.0f;
-  Float32 Height = 100.0f;
+  Float32 Aspect = 1.0f;
+  Float32 Zoom = 1.0f;
   
   // For Perspective
   Float32 FOV = 65.0f;

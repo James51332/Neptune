@@ -9,16 +9,7 @@
 #include "core/WindowEvent.h"
 #include "core/Input.h"
 
-#include "renderer/RenderContext.h"
-#include "renderer/RenderCommand.h"
-#include "renderer/PipelineState.h"
-#include "renderer/RenderPass.h"
-#include "renderer/CommandBuffer.h"
-#include "renderer/Shader.h"
-#include "renderer/Texture.h"
-#include "renderer/Camera.h"
 #include "renderer/ImGUIRenderer.h"
-#include "renderer/Swapchain.h"
 #include "renderer/Renderer2D.h"
 
 #include <imgui/imgui.h>
@@ -44,14 +35,18 @@ Application::Application(const WindowDesc& desc)
   m_Swapchain = m_RenderContext->GetSwapchain();
   
   Input::OnInit();
+  
+  // TODO: Move to Renderer::OnInit()
   ImGUIRenderer::OnInit(m_RenderDevice, desc.Width, desc.Height);
   Renderer2D::OnInit(m_RenderDevice);
 }
 
 Application::~Application()
 {
+  // TODO: Move to Renderer::OnTerminate()
   Renderer2D::OnTerminate();
   ImGUIRenderer::OnTerminate();
+  
   Input::OnTerminate();
 }
 
@@ -112,139 +107,20 @@ void Application::Run()
     for (Size i = 0; i < 3; i++)
     	m_Framebuffers.PushBack(m_RenderDevice->CreateFramebuffer(desc));
   }
-  
-  // Create Pipeline State
-  Ref<PipelineState> pipeline;
-  {
-    PipelineStateDesc desc;
-    
-    ShaderDesc sd;
-    sd.vertexSrc = shaderSrc;
-    sd.fragmentSrc = shaderSrc;
-    desc.Shader = m_RenderDevice->CreateShader(sd);
-    
-    desc.Layout = {
-      { PipelineAttributeType::Float3, "Position" },
-      { PipelineAttributeType::Float2, "TexCoord" },
-      { PipelineAttributeType::UChar4, "Color", true }
-    };
-    
-    DepthStencilState depth;
-    depth.Function = CompareFunction::Less;
-    depth.DepthWriteEnabled = true;
-    desc.DepthStencilState = depth;
-    
-    pipeline = m_RenderDevice->CreatePipelineState(desc);
-  }
-  
-  // Create Vertex Buffer
-  Ref<Buffer> vertexBuffer;
-  {
-    struct Vertex
-    {
-      Float3 position;
-      Float2 texCoord;
-      UInt32 color = 0xffffffff;
-    };
-    
-    const Vertex data[] = {
-      {{-0.5f,0.5f,-0.5f},  {0.0f, 0.0f}},
-      {{-0.5f,-0.5f,-0.5f}, {0.0f, 1.0f}},
-      {{0.5f,-0.5f,-0.5f},  {1.0f, 1.0f}},
-      {{0.5f,0.5f,-0.5f},   {1.0f, 0.0f}},
-      {{-0.5f,0.5f,0.5f},   {0.0f, 0.0f}},
-      {{-0.5f,-0.5f,0.5f},  {0.0f, 1.0f}},
-      {{0.5f,-0.5f,0.5f},   {1.0f, 1.0f}},
-      {{0.5f,0.5f,0.5f},    {1.0f, 0.0f}},
-      {{0.5f,0.5f,-0.5f},   {0.0f, 0.0f}},
-      {{0.5f,-0.5f,-0.5f},  {0.0f, 1.0f}},
-      {{0.5f,-0.5f,0.5f},   {1.0f, 1.0f}},
-      {{0.5f,0.5f,0.5f},    {1.0f, 0.0f}},
-      {{-0.5f,0.5f,-0.5f},  {0.0f, 0.0f}},
-      {{-0.5f,-0.5f,-0.5f}, {0.0f, 1.0f}},
-      {{-0.5f,-0.5f,0.5f},  {1.0f, 1.0f}},
-      {{-0.5f,0.5f,0.5f},   {1.0f, 0.0f}},
-      {{-0.5f,0.5f,0.5f},   {0.0f, 0.0f}},
-      {{-0.5f,0.5f,-0.5f},  {0.0f, 1.0f}},
-      {{0.5f,0.5f,-0.5f},   {1.0f, 1.0f}},
-      {{0.5f,0.5f,0.5f},    {1.0f, 0.0f}},
-      {{-0.5f,-0.5f,0.5f},  {0.0f, 0.0f}},
-      {{-0.5f,-0.5f,-0.5f}, {0.0f, 1.0f}},
-      {{0.5f,-0.5f,-0.5f},  {1.0f, 1.0f}},
-      {{0.5f,-0.5f,0.5f},   {1.0f, 0.0f}}
-    };
-    
-    BufferDesc desc;
-    desc.Type = BufferType::Vertex;
-    desc.Usage = BufferUsage::Static;
-    desc.Size = sizeof(data);
-    desc.Data = (void*)data;
-    vertexBuffer = m_RenderDevice->CreateBuffer(desc);
-  }
 
-  // Create Index Buffer
-  Ref<Buffer> indexBuffer;
-  {
-    const UInt16 data[] = {
-      0,1,3,
-      3,1,2,
-      4,5,7,
-      7,5,6,
-      8,9,11,
-      11,9,10,
-      12,13,15,
-      15,13,14,
-      16,17,19,
-      19,17,18,
-      20,21,23,
-      23,21,22
-    };
-    
-    BufferDesc desc;
-    desc.Type = BufferType::Index;
-    desc.Usage = BufferUsage::Static;
-    desc.Size = sizeof(data);
-    desc.Data = (void*)data;
-    indexBuffer = m_RenderDevice->CreateBuffer(desc);
-  }
-  
   // Load Texture
-  Ref<Texture> texture;
-  {
-    texture = m_RenderDevice->LoadTexture("resources/panda.png");
-  }
+  m_Texture = m_RenderDevice->LoadTexture("resources/panda.png");
   
   // Create Camera
-  Camera camera;
   {
     CameraDesc desc;
-    desc.Type = ProjectionType::Perspective;
-    desc.Position = { 1.0f, 1.0f, 2.0f };
-    desc.Width = 4.0f;
-    desc.Height = 4.0f;
-    camera = Camera(desc);
-  }
-  
-  // Create Uniform Buffer
-  Ref<Buffer> uniformBuffer;
-  {
-    BufferDesc desc;
-    desc.Type = BufferType::Uniform;
-    desc.Usage = BufferUsage::Dynamic;
-    desc.Size = sizeof(Matrix4);
-    desc.Data = (void*)&camera.GetViewProjectionMatrix()[0][0];
-    uniformBuffer = m_RenderDevice->CreateBuffer(desc);
-  }
-  
-  // Create draw command desc (can be reused, since the same for each call)
-  DrawCommandDesc drawCmd;
-  {
-    drawCmd.Indexed = true;
-    drawCmd.IndexBuffer = indexBuffer;
-    drawCmd.IndexType = IndexType::UInt16;
-    drawCmd.Type = PrimitiveType::Triangle;
-    drawCmd.Offset = 0;
-    drawCmd.Count = indexBuffer->GetSize() / sizeof(UInt16);
+    desc.Type = ProjectionType::Orthographic;
+    desc.Position = { 0.0f, 0.0f, 3.0f };
+    desc.Zoom = 0.5f;
+    desc.Aspect = m_ViewportSize.x / m_ViewportSize.y;
+    desc.Near = -10.0f;
+    desc.Far = 10.0f;
+    m_Camera = Camera(desc);
   }
   
   constexpr Size framesInFlight = 3;
@@ -288,7 +164,8 @@ void Application::Run()
     
     ImGUIRenderer::OnUpdate();
     
-    // Camera Movement
+    // TODO: Camera Controller
+    // Update Camera
     {
     	Float3 translate = Float3(0.0f);
 
@@ -297,22 +174,17 @@ void Application::Run()
       if (Input::KeyDown(KeyCode::KeyW)) translate.y += 0.05f;
       if (Input::KeyDown(KeyCode::KeyS)) translate.y -= 0.05f;
 
-      CameraDesc desc = camera.GetDesc();
+      CameraDesc desc = m_Camera.GetDesc();
       desc.Position += translate;
-      camera.SetDesc(desc);
-      uniformBuffer->Update(sizeof(Matrix4), &camera.GetViewProjectionMatrix()[0][0]);
+      desc.Aspect = m_ViewportSize.x / m_ViewportSize.y;
+      m_Camera.SetDesc(desc);
     }
     
-    // Resize Framebuffer and Camera
+    // Resize Framebuffer
     {
       FramebufferDesc desc = m_Framebuffers[frame]->GetDesc();
       if (desc.Width != m_ViewportSize.x || desc.Height != m_ViewportSize.y)
         m_Framebuffers[frame]->Resize(m_ViewportSize.x, m_ViewportSize.y);
-      
-      CameraDesc camDesc = camera.GetDesc();
-      camDesc.Width = m_ViewportSize.x;
-      camDesc.Height = m_ViewportSize.y;
-      camera.SetDesc(camDesc);
     }
     
     // ImGui
@@ -347,19 +219,11 @@ void Application::Run()
           scenePass.Framebuffer = m_Framebuffers[frame];
         }
         RenderCommand::BeginRenderPass(scenePass);
-	
-        // 3D Scene
-        RenderCommand::SetVertexBuffer(vertexBuffer, 0);
-        RenderCommand::SetVertexBuffer(uniformBuffer, 1);
-        RenderCommand::SetPipelineState(pipeline);
-        RenderCommand::BindTexture(texture, 0);
-
-        RenderCommand::Submit(drawCmd);
         
         // Renderer 2D
-        Renderer2D::Begin(camera);
+        Renderer2D::Begin(m_Camera);
         Renderer2D::DrawQuad(Matrix4(1.0f), Float4(1.0f));
-        Renderer2D::DrawQuad(glm::translate(Matrix4(1.0f), {1.0f, 0.0f, 0.0f}), texture, Float4(1.0f), 2.0f);
+        Renderer2D::DrawQuad(glm::translate(Matrix4(1.0f), {1.0f, 0.0f, 0.0f}), m_Texture, Float4(1.0f), 2.0f);
         Renderer2D::End();
         
         RenderCommand::EndRenderPass();
