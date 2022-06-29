@@ -19,8 +19,10 @@
 #include "renderer/Camera.h"
 #include "renderer/ImGUIRenderer.h"
 #include "renderer/Swapchain.h"
+#include "renderer/Renderer2D.h"
 
 #include <imgui/imgui.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace Neptune
 {
@@ -43,10 +45,12 @@ Application::Application(const WindowDesc& desc)
   
   Input::OnInit();
   ImGUIRenderer::OnInit(m_RenderDevice, desc.Width, desc.Height);
+  Renderer2D::OnInit(m_RenderDevice);
 }
 
 Application::~Application()
 {
+  Renderer2D::OnTerminate();
   ImGUIRenderer::OnTerminate();
   Input::OnTerminate();
 }
@@ -344,12 +348,19 @@ void Application::Run()
         }
         RenderCommand::BeginRenderPass(scenePass);
 	
+        // 3D Scene
         RenderCommand::SetVertexBuffer(vertexBuffer, 0);
         RenderCommand::SetVertexBuffer(uniformBuffer, 1);
         RenderCommand::SetPipelineState(pipeline);
         RenderCommand::BindTexture(texture, 0);
 
         RenderCommand::Submit(drawCmd);
+        
+        // Renderer 2D
+        Renderer2D::Begin(camera);
+        Renderer2D::DrawQuad(Matrix4(1.0f), Float4(1.0f));
+        Renderer2D::DrawQuad(glm::translate(Matrix4(1.0f), {1.0f, 0.0f, 0.0f}), texture, Float4(1.0f), 2.0f);
+        Renderer2D::End();
         
         RenderCommand::EndRenderPass();
       }
