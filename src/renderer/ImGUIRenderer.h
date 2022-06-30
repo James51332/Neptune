@@ -30,15 +30,16 @@ struct ImGUIRendererData
 
 class ImGUIRenderer
 {
+  friend class Renderer;
 public:
-  static void OnInit(const Ref<RenderDevice>& device, Size width, Size height);
-  static void OnUpdate();
-  static void OnTerminate();
-  static void OnEvent(Scope<Event>& event);
-  
   static void Render();
   
 private:
+  static void OnInit(const Ref<RenderDevice>& device, Size width, Size height);
+  static void OnTerminate();
+  static void OnEvent(Scope<Event>& event);
+private:
+  
   static ImGUIRendererData s_Data;
 };
 

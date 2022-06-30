@@ -47,10 +47,8 @@ struct Renderer2DData
 
 class Renderer2D
 {
+  friend class Renderer;
 public:
-  static void OnInit(const Ref<RenderDevice>& device);
-  static void OnTerminate();
-  
   static void Begin(const Camera& camera);
   static void End();
   
@@ -58,6 +56,9 @@ public:
   static void DrawQuad(const Matrix4& transform, const Ref<Texture>& texture, const Float4& color = Float4(1.0f), Float32 tilingFactor = 1.0f);
   
 private:
+  static void OnInit(const Ref<RenderDevice>& device);
+  static void OnTerminate();
+  
   static void StartBatch();
   static void Flush();
   

@@ -6,6 +6,7 @@
 #include "core/EventQueue.h"
 #include "core/NativeApplication.h"
 #include "core/Window.h"
+#include "core/LayerStack.h"
 
 #include "renderer/RenderContext.h"
 #include "renderer/Swapchain.h"
@@ -23,6 +24,7 @@ public:
   
   void Run();
   void Stop() noexcept { m_Running = false; }
+  void PushLayer(Layer* layer) { m_LayerStack.PushLayer(layer); }
   
   static Application* GetSingleton() noexcept;
   static void PushEvent(Scope<Event> e) noexcept
@@ -42,10 +44,7 @@ private:
   Scope<NativeApplication> m_NativeApp;
   Scope<Window> m_Window;
   
-  DynamicArray<Ref<Framebuffer>> m_Framebuffers;
-  Float2 m_ViewportSize = { 800, 600 };
-  Ref<Texture> m_Texture;
-  Camera m_Camera;
+  LayerStack m_LayerStack;
   
   Ref<RenderContext> m_RenderContext;
   Ref<RenderDevice> m_RenderDevice;

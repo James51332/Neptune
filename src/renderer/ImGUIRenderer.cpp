@@ -174,10 +174,7 @@ void ImGUIRenderer::OnInit(const Ref<RenderDevice>& device, Size width, Size hei
     desc.Mipmapped = false;
     s_Data.FontTexture = s_Data.Device->CreateTexture(desc);
   }
-}
-
-void ImGUIRenderer::OnUpdate()
-{
+  
   ImGui::NewFrame();
   ImGui::DockSpaceOverViewport();
 }
@@ -262,6 +259,9 @@ void ImGUIRenderer::Render()
       }
     }
   }
+  
+  ImGui::NewFrame();
+  ImGui::DockSpaceOverViewport();
 }
 
 void ImGUIRenderer::OnEvent(Scope<Event> &e)

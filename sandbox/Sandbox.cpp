@@ -1,4 +1,7 @@
 #include "neptunepch.h"
+
+#include "SandboxLayer.h"
+
 #include <Neptune/Neptune.h>
 
 class SandboxApp : public Neptune::Application
@@ -16,5 +19,7 @@ public:
 
 Neptune::Application* Neptune::CreateApplication()
 {
-  return new SandboxApp();
+  Neptune::Application* app = new SandboxApp();
+  app->PushLayer(new SandboxLayer());
+  return app;
 }

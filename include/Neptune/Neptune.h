@@ -10,6 +10,25 @@
 #include "core/Logger.h"
 #include "core/KeyCode.h"
 #include "core/MouseCode.h"
+#include "core/Event.h"
+#include "core/EventQueue.h"
+#include "core/MouseEvent.h"
+#include "core/KeyEvent.h"
+#include "core/WindowEvent.h"
+#include "core/Input.h"
+
+// ----- Renderer ----------
+#include "renderer/Renderer.h"
+#include "renderer/Renderer2D.h"
+#include "renderer/Camera.h"
+#include "renderer/Buffer.h"
+#include "renderer/Shader.h"
+#include "renderer/PipelineState.h"
+#include "renderer/RenderCommand.h"
+#include "renderer/ImGuiRenderer.h"
+#include "renderer/Sync.h"
+#include "renderer/RenderDevice.h"
+#include "renderer/ImGuiRenderer.h"
 
 // ----- Math ----------
 #include "math/Vector.h"
