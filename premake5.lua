@@ -24,6 +24,7 @@ includeDirs["concurrentQueue"] = "thirdparty/concurrentQueue"
 includeDirs["glm"] = "thirdparty/glm"
 includeDirs["stb_image"] = "thirdparty/stb_image"
 includeDirs["imgui"] = "thirdparty/imgui"
+includeDirs["OpenFBX"] = "thirdparty/OpenFBX"
 
 project "Neptune"
 	kind "StaticLib"
@@ -43,6 +44,8 @@ project "Neptune"
     "thirdparty/stb_image/**.cpp",
     "thirdparty/imgui/imgui/*.h",
     "thirdparty/imgui/imgui/*.cpp",
+    "thirdparty/OpenFBX/**.cpp",
+    "thirdparty/OpenFBX/**.c",
   	"pch/neptunepch.h",
    	"pch/neptunepch.cpp"
 	}
@@ -60,7 +63,8 @@ project "Neptune"
   	includeDirs["concurrentQueue"],
   	includeDirs["glm"],
   	includeDirs["stb_image"],
-  	includeDirs["imgui"]
+  	includeDirs["imgui"],
+  	includeDirs["OpenFBX"]
 	}
 
 	filter "system:windows"
@@ -129,7 +133,8 @@ project "Sandbox"
    	includeDirs["concurrentQueue"],
     includeDirs["glm"],
     includeDirs["stb_image"],
-    includeDirs["imgui"]
+  	includeDirs["imgui"],
+  	includeDirs["OpenFBX"]
 	}
 	
   filter "system:windows"

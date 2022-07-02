@@ -26,4 +26,8 @@ private:
   Neptune::Ref<Neptune::Texture> m_Texture;
   Neptune::Camera m_Camera;
 
+  Neptune::Ref<Neptune::Buffer> m_VB;
+  Neptune::Ref<Neptune::Buffer> m_IB;
+  Neptune::Ref<Neptune::Buffer> m_UB;
+  Neptune::Ref<Neptune::PipelineState> m_Pipeline;
 };
