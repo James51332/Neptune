@@ -1,5 +1,5 @@
 #include "neptunepch.h"
-#include "SandboxLayer.h"
+#include "EditorLayer.h"
 
 #include <imgui/imgui.h>
 #include <OpenFBX/ofbx.h>
@@ -7,6 +7,9 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+
+namespace Neptune
+{
 
 const char* meshSrc = R"(
 #include <metal_stdlib>
@@ -43,30 +46,30 @@ fragment float4 fragmentFunc(FSInput in [[stage_in]])
   return in.color;
 })";
 
-SandboxLayer::SandboxLayer()
-	: Layer("Sandbox Layer")
+EditorLayer::EditorLayer()
+	: Layer("Editor Layer")
 {
   
 }
 
-SandboxLayer::~SandboxLayer()
+EditorLayer::~EditorLayer()
 {
   
 }
 
 ofbx::IScene* scene;
 
-void SandboxLayer::OnInit(const Neptune::Ref<Neptune::RenderDevice>& device)
+void EditorLayer::OnInit(const Ref<RenderDevice>& device)
 {
   m_RenderDevice = device;
   
   // Create framebuffers
   {
-    Neptune::FramebufferDesc desc;
+    FramebufferDesc desc;
     desc.Width = m_ViewportSize.x;
     desc.Height = m_ViewportSize.y;
     
-    for (Neptune::Size i = 0; i < Neptune::Renderer::GetMaxFramesInFlight(); i++)
+    for (Size i = 0; i < Renderer::GetMaxFramesInFlight(); i++)
       m_Framebuffers.PushBack(m_RenderDevice->CreateFramebuffer(desc));
   }
   
@@ -75,15 +78,15 @@ void SandboxLayer::OnInit(const Neptune::Ref<Neptune::RenderDevice>& device)
   
   // Create Camera
   {
-    Neptune::CameraDesc desc;
-    desc.Type = Neptune::ProjectionType::Perspective;
+    CameraDesc desc;
+    desc.Type = ProjectionType::Perspective;
     desc.Position = { 0.0f, 0.0f, 4.0f };
     desc.Rotation = { -90.0f, 0.0f, 0.0f };
     desc.Aspect = m_ViewportSize.x / m_ViewportSize.y;
     desc.Near = 0.1f;
     desc.Far = 100.0f;
     desc.FOV = 45;
-    m_Camera = Neptune::Camera(desc);
+    m_Camera = Camera(desc);
   }
   
   // Try load a model or sum
@@ -105,8 +108,8 @@ void SandboxLayer::OnInit(const Neptune::Ref<Neptune::RenderDevice>& device)
       
       struct Vertex
       {
-        Neptune::Float3 pos;
-        Neptune::Float3 normal;
+        Float3 pos;
+        Float3 normal;
       };
       
       const ofbx::Geometry* geo = mesh->getGeometry();
@@ -121,11 +124,11 @@ void SandboxLayer::OnInit(const Neptune::Ref<Neptune::RenderDevice>& device)
         vertices[i].normal = { norm[i].x, norm[i].y, norm[i].z };
       }
       
-      Neptune::BufferDesc vbDesc;
-      vbDesc.Type = Neptune::BufferType::Vertex;
+      BufferDesc vbDesc;
+      vbDesc.Type = BufferType::Vertex;
       vbDesc.Size = cnt * sizeof(Vertex);
       vbDesc.Data = (void*)vertices;
-      vbDesc.Usage = Neptune::BufferUsage::Static;
+      vbDesc.Usage = BufferUsage::Static;
       m_VB = m_RenderDevice->CreateBuffer(vbDesc);
       
       delete[] vertices;
@@ -140,40 +143,39 @@ void SandboxLayer::OnInit(const Neptune::Ref<Neptune::RenderDevice>& device)
         indices[i] = faceIndices[i] >= 0 ? faceIndices[i] : ~faceIndices[i];
       }
       
-      Neptune::BufferDesc ibDesc;
-      ibDesc.Type = Neptune::BufferType::Index;
-      ibDesc.Usage = Neptune::BufferUsage::Static;
+      BufferDesc ibDesc;
+      ibDesc.Type = BufferType::Index;
+      ibDesc.Usage = BufferUsage::Static;
       ibDesc.Size = sizeof(UInt16) * indexCount;
       ibDesc.Data = (void*)indices;
       m_IB = m_RenderDevice->CreateBuffer(ibDesc);
       
       delete[] indices;
       
-      Neptune::BufferDesc ubDesc;
-      ubDesc.Type = Neptune::BufferType::Uniform;
-      ubDesc.Usage = Neptune::BufferUsage::Dynamic;
-      ubDesc.Size = sizeof(Neptune::Matrix4);
+      BufferDesc ubDesc;
+      ubDesc.Type = BufferType::Uniform;
+      ubDesc.Usage = BufferUsage::Dynamic;
+      ubDesc.Size = sizeof(Matrix4);
       ubDesc.Data = (void*)&m_Camera.GetViewProjectionMatrix()[0][0];
       m_UB = m_RenderDevice->CreateBuffer(ubDesc);
     }
     
     {
-      Neptune::PipelineStateDesc desc;
+      PipelineStateDesc desc;
       
       desc.Layout = {
-        { Neptune::PipelineAttributeType::Float3, "Position" },
-        { Neptune::PipelineAttributeType::Float3, "Normal" }
+        { PipelineAttributeType::Float3, "Position" },
+        { PipelineAttributeType::Float3, "Normal" }
       };
       
-      Neptune::DepthStencilState dss;
+      DepthStencilState dss;
       dss.DepthWriteEnabled = true;
-      dss.Function = Neptune::CompareFunction::Less;
-      
+      dss.Function = CompareFunction::Less;
       desc.DepthStencilState = dss;
       
-      Neptune::ShaderDesc s;
-      s.vertexSrc = pbrSrc;
-      s.fragmentSrc = pbrSrc;
+      ShaderDesc s;
+      s.vertexSrc = meshSrc;
+      s.fragmentSrc = meshSrc;
       desc.Shader = m_RenderDevice->CreateShader(s);
       
       m_Pipeline = m_RenderDevice->CreatePipelineState(desc);
@@ -182,90 +184,90 @@ void SandboxLayer::OnInit(const Neptune::Ref<Neptune::RenderDevice>& device)
   
 }
 
-void SandboxLayer::OnTerminate()
+void EditorLayer::OnTerminate()
 {
   
 }
 
-void SandboxLayer::OnUpdate()
+void EditorLayer::OnUpdate()
 {
   // TODO: Camera Controller
   // Update Camera
   {
-    Neptune::Float3 translate = Neptune::Float3(0.0f);
+    Float3 translate = Float3(0.0f);
     
-    if (Neptune::Input::KeyDown(Neptune::KeyCode::KeyD)) translate.x += 0.05f;
-    if (Neptune::Input::KeyDown(Neptune::KeyCode::KeyA)) translate.x -= 0.05f;
-    if (Neptune::Input::KeyDown(Neptune::KeyCode::KeyW)) translate.y += 0.05f;
-    if (Neptune::Input::KeyDown(Neptune::KeyCode::KeyS)) translate.y -= 0.05f;
+    if (Input::KeyDown(KeyCode::KeyD)) translate.x += 0.05f;
+    if (Input::KeyDown(KeyCode::KeyA)) translate.x -= 0.05f;
+    if (Input::KeyDown(KeyCode::KeyW)) translate.y += 0.05f;
+    if (Input::KeyDown(KeyCode::KeyS)) translate.y -= 0.05f;
     
-    Neptune::CameraDesc desc = m_Camera.GetDesc();
+    CameraDesc desc = m_Camera.GetDesc();
     desc.Position += translate;
     desc.Aspect = m_ViewportSize.x / m_ViewportSize.y;
     m_Camera.SetDesc(desc);
     
-    m_UB->Update(sizeof(Neptune::Matrix4), &m_Camera.GetViewProjectionMatrix()[0][0]);
+    m_UB->Update(sizeof(Matrix4), &m_Camera.GetViewProjectionMatrix()[0][0]);
   }
   
   // Resize Framebuffer
   {
-    Neptune::FramebufferDesc desc = m_Framebuffers[Neptune::Renderer::GetFrameNumber()]->GetDesc();
+    FramebufferDesc desc = m_Framebuffers[Renderer::GetFrameNumber()]->GetDesc();
     if (desc.Width != m_ViewportSize.x || desc.Height != m_ViewportSize.y)
-      m_Framebuffers[Neptune::Renderer::GetFrameNumber()]->Resize(m_ViewportSize.x, m_ViewportSize.y);
+      m_Framebuffers[Renderer::GetFrameNumber()]->Resize(m_ViewportSize.x, m_ViewportSize.y);
   }
 }
 
-void SandboxLayer::OnRender(const Neptune::Ref<Neptune::Framebuffer>& framebuffer)
+void EditorLayer::OnRender(const Ref<Framebuffer>& framebuffer)
 {
   // Scene Pass
   {
-    Neptune::RenderPass scenePass;
+    RenderPass scenePass;
     {
       scenePass.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-      scenePass.LoadAction = Neptune::LoadAction::Clear;
-      scenePass.StoreAction = Neptune::StoreAction::Store;
-      scenePass.Framebuffer = m_Framebuffers[Neptune::Renderer::GetFrameNumber()];
+      scenePass.LoadAction = LoadAction::Clear;
+      scenePass.StoreAction = StoreAction::Store;
+      scenePass.Framebuffer = m_Framebuffers[Renderer::GetFrameNumber()];
     }
-    Neptune::RenderCommand::BeginRenderPass(scenePass);
+    RenderCommand::BeginRenderPass(scenePass);
     
-    //Neptune::Renderer2D::Begin(m_Camera);
-    //Neptune::Renderer2D::DrawQuad(Neptune::Matrix4(1.0f), m_Texture);
-    //Neptune::Renderer2D::End();
+    //Renderer2D::Begin(m_Camera);
+    //Renderer2D::DrawQuad(Matrix4(1.0f), m_Texture);
+    //Renderer2D::End();
     
-    Neptune::RenderCommand::SetVertexBuffer(m_VB, 0);
-    Neptune::RenderCommand::SetVertexBuffer(m_UB, 1);
-    Neptune::RenderCommand::SetPipelineState(m_Pipeline);
+    RenderCommand::SetVertexBuffer(m_VB, 0);
+    RenderCommand::SetVertexBuffer(m_UB, 1);
+    RenderCommand::SetPipelineState(m_Pipeline);
     
-    Neptune::DrawCommandDesc cmd;
-    cmd.Type = Neptune::PrimitiveType::Triangle;
+    DrawCommandDesc cmd;
+    cmd.Type = PrimitiveType::Triangle;
     cmd.IndexBuffer = m_IB;
     cmd.Indexed = true;
-    cmd.IndexType = Neptune::IndexType::UInt16;
+    cmd.IndexType = IndexType::UInt16;
     cmd.Count = m_IB->GetSize() / sizeof(UInt16);
     cmd.Offset = 0;
-    Neptune::RenderCommand::Submit(cmd);
+    RenderCommand::Submit(cmd);
     
-    Neptune::RenderCommand::EndRenderPass();
+    RenderCommand::EndRenderPass();
   }
   
   // ImGui (Swapchain Pass)
   {
-    Neptune::RenderPass renderPass;
+    RenderPass renderPass;
     {
       renderPass.ClearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
-      renderPass.LoadAction = Neptune::LoadAction::Clear;
-      renderPass.StoreAction = Neptune::StoreAction::Store;
+      renderPass.LoadAction = LoadAction::Clear;
+      renderPass.StoreAction = StoreAction::Store;
       renderPass.Framebuffer = framebuffer;
     }
-    Neptune::RenderCommand::BeginRenderPass(renderPass);
+    RenderCommand::BeginRenderPass(renderPass);
     
-    Neptune::ImGUIRenderer::Render();
+    ImGUIRenderer::Render();
     
-    Neptune::RenderCommand::EndRenderPass();
+    RenderCommand::EndRenderPass();
   }
 }
 
-void SandboxLayer::OnImGuiRender()
+void EditorLayer::OnImGuiRender()
 {
   // Viewport
   {
@@ -273,7 +275,7 @@ void SandboxLayer::OnImGuiRender()
     ImGui::Begin("Viewport");
     
     ImVec2 viewSize = ImGui::GetContentRegionAvail();
-    ImGui::Image((void*)&m_Framebuffers[Neptune::Renderer::GetFrameNumber()]->GetColorAttachment(), ImVec2(m_ViewportSize.x, m_ViewportSize.y));
+    ImGui::Image((void*)&m_Framebuffers[Renderer::GetFrameNumber()]->GetColorAttachment(), ImVec2(m_ViewportSize.x, m_ViewportSize.y));
     m_ViewportSize = { viewSize.x, viewSize.y };
     
     ImGui::End();
@@ -286,8 +288,8 @@ void SandboxLayer::OnImGuiRender()
     
     ImGui::Separator();
     
-    Neptune::Size meshes = scene->getMeshCount();
-    for (Neptune::Size i = 0; i < meshes; ++i)
+    Size meshes = scene->getMeshCount();
+    for (Size i = 0; i < meshes; ++i)
     {
       const ofbx::Mesh* mesh = scene->getMesh(static_cast<int>(i));
     	
@@ -327,8 +329,10 @@ void SandboxLayer::OnImGuiRender()
   }
 }
 
-void SandboxLayer::OnEvent(Neptune::Scope<Neptune::Event>& e)
+void EditorLayer::OnEvent(Scope<Event>& e)
 {
   
 }
+
+} // namespace Neptune
                      

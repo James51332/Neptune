@@ -100,7 +100,7 @@ project "Neptune"
 		defines "NEPTUNE_DIST"
 		optimize "Full"
 
-project "Sandbox"
+project "Editor"
 	kind "ConsoleApp"
 	
 	debugdir (path.getabsolute("."))
@@ -110,8 +110,8 @@ project "Sandbox"
 
 	files
 	{
-		"sandbox/**.cpp",
-		"sandbox/**.h"
+		"editor/**.cpp",
+		"editor/**.h"
 	} 
 
 	links
