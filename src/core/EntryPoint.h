@@ -26,4 +26,20 @@ int main()
 
 #endif // NEPTUNE_MACOS
 
+#ifdef NEPTUNE_WINDOWS
+
+int main()
+{
+  Neptune::Logger::Initialize();
+  NEPTUNE_CORE_INFO("Engine Initializing...");
+
+  auto app = Neptune::CreateApplication();
+  app->Run();
+  delete app;
+
+  return 0;
+}
+
+#endif // NEPTUNE_WINDOWS
+
 #endif // NEPTUNE_ENTRYPOINT

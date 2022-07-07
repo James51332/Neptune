@@ -12,7 +12,7 @@ public:
   static Scope<NativeApplication> Create();
   virtual ~NativeApplication();
   
-  virtual void PollEvents() noexcept = 0;
+  virtual void PollEvents() = 0;
 };
 
 } // namespace Neptune

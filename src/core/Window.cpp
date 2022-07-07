@@ -11,6 +11,8 @@ Scope<Window> Window::Create(const WindowDesc& desc)
 #ifdef NEPTUNE_MACOS
   return CreateScope<MacWindow>(desc);
 #endif
+
+  return nullptr;
 }
 
 Window::~Window()

@@ -17,6 +17,9 @@ workspace "Neptune"
 	{
 		"MultiProcessorCompile"
 	}
+
+	filter "files:thirdparty/**"
+    flags { "NoPCH" }
 	
 includeDirs = {}
 includeDirs["spdlog"] = "thirdparty/spdlog/include"
@@ -69,6 +72,11 @@ project "Neptune"
 
 	filter "system:windows"
 		systemversion "latest"
+		files
+		{
+			"platform/windows/**.cpp",
+			"platform/windows/**.h"
+		}
   
   filter "system:macosx"
   	files
@@ -86,23 +94,26 @@ project "Neptune"
     
   filter "action:vs*"
     pchheader "neptunepch.h"
-    pchheader "neptunepch.cpp"
+    pchsource "pch/neptunepch.cpp"
 
 	filter "configurations:Debug"
 		defines "NEPTUNE_DEBUG"
+		runtime "Debug"
 		symbols "On"		
 
 	filter "configurations:Release"
 		defines "NEPTUNE_RELEASE"
+		runtime "Release"
 		optimize "On"
 
 	filter "configurations:Dist"
 		defines "NEPTUNE_DIST"
+		runtime "Release"
 		optimize "Full"
 
 project "Editor"
 	kind "ConsoleApp"
-	
+
 	debugdir (path.getabsolute("."))
 
 	targetdir ("build/bin/neptune-" .. string.lower("%{cfg.system}") .. "/%{cfg.shortname}/")
@@ -111,7 +122,9 @@ project "Editor"
 	files
 	{
 		"editor/**.cpp",
-		"editor/**.h"
+		"editor/**.h",
+		"pch/neptunepch.h",
+   	"pch/neptunepch.cpp"
 	} 
 
 	links
@@ -139,6 +152,13 @@ project "Editor"
 	
   filter "system:windows"
     systemversion "latest"
+		links
+		{
+			"kernel32",
+			"gdi32",
+			"user32",
+			"comctl32"
+		}
     
   filter "system:macosx"
     links
@@ -153,16 +173,21 @@ project "Editor"
     
   filter "action:vs*"
     pchheader "neptunepch.h"
-    pchheader "neptunepch.cpp"
+    pchsource "pch/neptunepch.cpp"
+		characterset "ASCII"
+    defines "_CRT_SECURE_NO_WARNINGS"
 
   filter "configurations:Debug"
     defines "NEPTUNE_DEBUG"
+		runtime "Debug"
 		symbols "On"
 
   filter "configurations:Release"
     defines "NEPTUNE_RELEASE"
+		runtime "Release"
 		optimize "On"
 	
   filter "configurations:Dist"
     defines "NEPTUNE_DIST"
+		runtime "Release"
 		optimize "Full"
