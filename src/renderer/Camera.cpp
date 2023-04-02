@@ -16,10 +16,16 @@ Camera::Camera(const CameraDesc& desc)
 
 void Camera::UpdateMatrices()
 {
-  m_View = glm::translate(glm::mat4(1.0f), -m_Desc.Position)
-      	 * glm::rotate(glm::mat4(1.0f), m_Desc.Rotation.x, { 1.0f, 0.0f, 0.0f})
-         * glm::rotate(glm::mat4(1.0f), m_Desc.Rotation.y, { 0.0f, 1.0f, 0.0f})
-         * glm::rotate(glm::mat4(1.0f), m_Desc.Rotation.z, { 0.0f, 0.0f, 1.0f});
+  // We should translate into camera space, then rotate by pitch, yaw, then roll to affect camera rotation
+  // pitch -> y-axis
+  // yaw -> x-axis
+  // roll - z-axis
+  // I can't guarantee this is standard so we could change eventually, but to me it makes sense.
+  
+  m_View = glm::rotate(glm::mat4(1.0f), glm::radians(-m_Desc.Rotation.z), { 0.0f, 0.0f, 1.0f }) // roll (z-component -> z-axis)
+         * glm::rotate(glm::mat4(1.0f), glm::radians(-m_Desc.Rotation.y), { 1.0f, 0.0f, 0.0f }) // yaw (y-component -> x-axis)
+  			 * glm::rotate(glm::mat4(1.0f), glm::radians(-m_Desc.Rotation.x), { 0.0f, 1.0f, 0.0f }) // pitch (x-component -> y-axis)
+  			 * glm::translate(glm::mat4(1.0f), -m_Desc.Position);
 
   if (m_Desc.Type == ProjectionType::Perspective)
   {
@@ -37,6 +43,10 @@ void Camera::UpdateMatrices()
   }
   
   m_ViewProjection = m_Projection * m_View;
+  
+  // Update direction vectors
+  m_Forward = glm::normalize(Float3(m_View[2])) * Float3(1 , 1 , -1);
+  m_Right = glm::normalize(Float3(m_View[0])) * Float3(1 , 1 , -1);
 }
 
 } // namespace Neptune

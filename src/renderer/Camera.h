@@ -41,11 +41,17 @@ public:
   const Matrix4& GetProjectionMatrix() const noexcept { return m_Projection; }
   const Matrix4& GetViewProjectionMatrix() const noexcept { return m_ViewProjection; }
   
+  const Float3& GetForwardDirection() const noexcept { return m_Forward; }
+  const Float3& GetRightDirection() const noexcept { return m_Right; }
+  
 private:
   void UpdateMatrices();
     
 private:
   CameraDesc m_Desc;
+  
+  Float3 m_Forward = Float3(1.0f);
+  Float3 m_Right = Float3(1.0f);
   
   Matrix4 m_View = Matrix4(1.0f);
   Matrix4 m_Projection = Matrix4(1.0f);

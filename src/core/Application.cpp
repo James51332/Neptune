@@ -12,7 +12,6 @@
 #include "renderer/Renderer.h"
 
 #include <imgui/imgui.h>
-#include <glm/gtc/matrix_transform.hpp>
 
 namespace Neptune
 {
@@ -43,47 +42,6 @@ Application::~Application()
   Input::OnTerminate();
 }
 
-// shader source
-const char* shaderSrc = R"(
-#include <metal_stdlib>
-using namespace metal;
-
-struct VSInput
-{
-	float3 position [[attribute(0)]];
-	float2 texCoord [[attribute(1)]];
-	float4 color [[attribute(2)]];
-};
-
-struct FSInput
-{
-	float4 position [[position]];
-	float2 texCoord;
-	float4 color;
-};
-
-struct Uniform
-{
-	float4x4 viewProjection;
-};
-
-vertex FSInput vertexFunc(VSInput in [[stage_in]],
-													constant Uniform& uniform [[buffer(1)]])
-{
-	FSInput out;
-	out.position = uniform.viewProjection * float4(in.position, 1);
-	out.texCoord = in.texCoord;
-	out.color = in.color;
-	return out;
-}
-
-fragment float4 fragmentFunc(FSInput in [[stage_in]],
-                             texture2d<float> colorTexture [[texture(0)]])
-{
- 	constexpr sampler textureSampler(mag_filter::linear, min_filter::linear);
- 	return colorTexture.sample(textureSampler, in.texCoord) * in.color;
-})";
-
 void Application::Run()
 {
   // Initialization
@@ -112,8 +70,8 @@ void Application::Run()
     Scope<Event> e;
     while (m_EventQueue.PopEvent(e))
     {
-      Input::OnEvent(e);
       Renderer::OnEvent(e);
+      Input::OnEvent(e);
       
       // Dispatch Events
       EventQueue::Dispatch<WindowClosedEvent>(e, [this](const WindowClosedEvent& event) {

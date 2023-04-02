@@ -21,6 +21,7 @@
 #include "renderer/Renderer.h"
 #include "renderer/Renderer2D.h"
 #include "renderer/Camera.h"
+#include "renderer/CameraController.h"
 #include "renderer/Buffer.h"
 #include "renderer/Shader.h"
 #include "renderer/PipelineState.h"

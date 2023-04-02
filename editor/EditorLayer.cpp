@@ -8,6 +8,9 @@
 #include <fstream>
 #include <sstream>
 
+#define GLM_DEPTH_FORCE_ONE_TO_ZERO
+#include <glm/gtc/matrix_transform.hpp>
+
 namespace Neptune
 {
 
@@ -35,9 +38,11 @@ struct Uniform
 vertex FSInput vertexFunc(VSInput in [[stage_in]],
                         constant Uniform& uniform [[buffer(1)]])
 {
+	float3 envLightDir(0, 1, 0);
+
   FSInput out;
   out.position = uniform.viewProjection * float4(in.position , 1);
-	out.color = float4(abs(in.normal), 1);
+	out.color = float4(float3(max(dot(abs(in.normal), envLightDir),0.0f)), 1);
   return out;
 }
 
@@ -81,12 +86,13 @@ void EditorLayer::OnInit(const Ref<RenderDevice>& device)
     CameraDesc desc;
     desc.Type = ProjectionType::Perspective;
     desc.Position = { 0.0f, 0.0f, 4.0f };
-    desc.Rotation = { -90.0f, 0.0f, 0.0f };
+    desc.Rotation = { 0.0f, 0.0f, 0.0f };
     desc.Aspect = m_ViewportSize.x / m_ViewportSize.y;
     desc.Near = 0.1f;
     desc.Far = 100.0f;
     desc.FOV = 45;
-    m_Camera = Camera(desc);
+    Camera cam = Camera(desc);
+    m_CameraController = CameraController(cam);
   }
   
   // Try load a model or sum
@@ -156,7 +162,7 @@ void EditorLayer::OnInit(const Ref<RenderDevice>& device)
       ubDesc.Type = BufferType::Uniform;
       ubDesc.Usage = BufferUsage::Dynamic;
       ubDesc.Size = sizeof(Matrix4);
-      ubDesc.Data = (void*)&m_Camera.GetViewProjectionMatrix()[0][0];
+      ubDesc.Data = (void*)&m_CameraController.GetCamera().GetViewProjectionMatrix()[0][0];
       m_UB = m_RenderDevice->CreateBuffer(ubDesc);
     }
     
@@ -181,33 +187,16 @@ void EditorLayer::OnInit(const Ref<RenderDevice>& device)
       m_Pipeline = m_RenderDevice->CreatePipelineState(desc);
     }
   }
-  
 }
 
 void EditorLayer::OnTerminate()
 {
-  
 }
 
 void EditorLayer::OnUpdate()
 {
-  // TODO: Camera Controller
-  // Update Camera
-  {
-    Float3 translate = Float3(0.0f);
-    
-    if (Input::KeyDown(KeyCode::KeyD)) translate.x += 0.05f;
-    if (Input::KeyDown(KeyCode::KeyA)) translate.x -= 0.05f;
-    if (Input::KeyDown(KeyCode::KeyW)) translate.y += 0.05f;
-    if (Input::KeyDown(KeyCode::KeyS)) translate.y -= 0.05f;
-    
-    CameraDesc desc = m_Camera.GetDesc();
-    desc.Position += translate;
-    desc.Aspect = m_ViewportSize.x / m_ViewportSize.y;
-    m_Camera.SetDesc(desc);
-    
-    m_UB->Update(sizeof(Matrix4), &m_Camera.GetViewProjectionMatrix()[0][0]);
-  }
+  m_CameraController.OnUpdate();
+  m_UB->Update(sizeof(Matrix4), &m_CameraController.GetCamera().GetViewProjectionMatrix()[0][0]);
   
   // Resize Framebuffer
   {
@@ -229,11 +218,7 @@ void EditorLayer::OnRender(const Ref<Framebuffer>& framebuffer)
       scenePass.Framebuffer = m_Framebuffers[Renderer::GetFrameNumber()];
     }
     RenderCommand::BeginRenderPass(scenePass);
-    
-    //Renderer2D::Begin(m_Camera);
-    //Renderer2D::DrawQuad(Matrix4(1.0f), m_Texture);
-    //Renderer2D::End();
-    
+
     RenderCommand::SetVertexBuffer(m_VB, 0);
     RenderCommand::SetVertexBuffer(m_UB, 1);
     RenderCommand::SetPipelineState(m_Pipeline);
@@ -260,9 +245,9 @@ void EditorLayer::OnRender(const Ref<Framebuffer>& framebuffer)
       renderPass.Framebuffer = framebuffer;
     }
     RenderCommand::BeginRenderPass(renderPass);
-    
+
     ImGUIRenderer::Render();
-    
+
     RenderCommand::EndRenderPass();
   }
 }
@@ -274,58 +259,15 @@ void EditorLayer::OnImGuiRender()
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0,0});
     ImGui::Begin("Viewport");
     
+    bool block = !ImGui::IsWindowFocused() && !ImGui::IsWindowHovered();
+    ImGUIRenderer::BlockEvents(block);
+    
     ImVec2 viewSize = ImGui::GetContentRegionAvail();
     ImGui::Image((void*)&m_Framebuffers[Renderer::GetFrameNumber()]->GetColorAttachment(), ImVec2(m_ViewportSize.x, m_ViewportSize.y));
     m_ViewportSize = { viewSize.x, viewSize.y };
     
     ImGui::End();
     ImGui::PopStyleVar();
-  }
-  
-  // OFBX
-  {
-    ImGui::Begin("OFBX");
-    
-    ImGui::Separator();
-    
-    Size meshes = scene->getMeshCount();
-    for (Size i = 0; i < meshes; ++i)
-    {
-      const ofbx::Mesh* mesh = scene->getMesh(static_cast<int>(i));
-    	
-      char label[128];
-      std::memcpy(label, mesh->name, 128);
-      
-      ImGui::PushID(mesh->name);
-      if (ImGui::TreeNode("mesh", "%s", label))
-      {
-        const ofbx::Geometry* geo = mesh->getGeometry();
-        const ofbx::Vec3* vert = geo->getVertices();
-        const int cnt = geo->getVertexCount();
-        
-        
-        ImGui::Text("Vertices: (%i)", cnt);
-        for (int i = 0; i < cnt; i++)
-        {
-          ImGui::Text("X: %f Y: %f Z: %f", vert[i].x, vert[i].y, vert[i].z);
-        }
-        
-        const int indexCount = geo->getIndexCount();
-        const int* faceIndices = geo->getFaceIndices();
-        
-        ImGui::Spacing();
-        
-        for (int i = 0; i < indexCount; i++)
-        {
-          ImGui::Text("%i", faceIndices[i] >= 0 ? faceIndices[i] : (~faceIndices[i]));
-        }
-        
-        ImGui::TreePop();
-      }
-      ImGui::PopID();
-    }
-    
-    ImGui::End();
   }
 }
 
