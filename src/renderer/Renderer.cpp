@@ -160,4 +160,12 @@ void Renderer::Submit(const Ref<Mesh> &mesh, const Ref<Material> &material)
   RenderCommand::Submit(cmd);
 }
 
+void Renderer::Submit(const Ref<Model> &model)
+{
+  for (auto mesh : model->m_Meshes)
+  {
+    Submit(mesh, model->m_Materials[0]);
+  }
+}
+
 } // namespace Neptune

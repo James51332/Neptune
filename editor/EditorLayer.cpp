@@ -2,9 +2,6 @@
 #include "EditorLayer.h"
 
 #include <imgui/imgui.h>
-#include <assimp/Importer.hpp>
-#include <assimp/postprocess.h>
-#include <assimp/scene.h>
 
 #include <iostream>
 #include <fstream>
@@ -19,12 +16,10 @@ namespace Neptune
 EditorLayer::EditorLayer()
 : Layer("Editor Layer")
 {
-  
 }
 
 EditorLayer::~EditorLayer()
 {
-  
 }
 
 void EditorLayer::OnInit(const Ref<RenderDevice>& device)
@@ -60,79 +55,9 @@ void EditorLayer::OnInit(const Ref<RenderDevice>& device)
   
   // Try load a model or sum
   {
-    Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile("resources/gun.fbx", aiProcess_Triangulate | aiProcess_GenNormals);
-    
-    if (!scene || !scene->mRootNode || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE)
-    {
-      NEPTUNE_ERROR("Failed to open scene!");
-    }
-    
-    aiMesh* mesh = scene->mMeshes[3];
-    
-    MeshDesc desc;
-    desc.NumVertices = mesh->mNumVertices;
-    DynamicArray<MeshVertex> vertices;
-    DynamicArray<MeshIndex> indices;
-    
-    for (Size i = 0; i < desc.NumVertices; i++)
-    {
-      MeshVertex vertex;
-      
-      Float3 position;
-      position.x = mesh->mVertices[i].x;
-      position.y = mesh->mVertices[i].y;
-      position.z = mesh->mVertices[i].z;
-      vertex.Position = position;
-      
-      Float3 normal;
-      normal.x = mesh->mNormals[i].x;
-      normal.y = mesh->mNormals[i].y;
-      normal.z = mesh->mNormals[i].z;
-      vertex.Normal = normal;
-      
-      Float4 color = Float4(1.0);
-      if (mesh->mColors[0])
-      {
-      	color.r = mesh->mColors[i]->r;
-      	color.g = mesh->mColors[i]->g;
-      	color.b = mesh->mColors[i]->b;
-      	color.a = mesh->mColors[i]->a;
-      }
-      vertex.Color = color;
-      
-      Float2 uv = Float2(0.0f);
-      if(mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
-      {
-        uv.x = mesh->mTextureCoords[0][i].x;
-        uv.y = mesh->mTextureCoords[0][i].y;
-      }
-      vertex.UV = uv;
-      
-      vertices.PushBack(vertex);
-    }
-    
-    desc.Vertices = &vertices[0];
-    
-    for(Size i = 0; i < mesh->mNumFaces; i++)
-    {
-      aiFace face = mesh->mFaces[i];
-      for(Size j = 0; j < face.mNumIndices; j++)
-        indices.PushBack(face.mIndices[j]);
-    }
-    
-    desc.Indices = &indices[0];
-    desc.NumIndices = indices.Size();
-    m_Mesh = m_RenderDevice->CreateMesh(desc);
-  }
-  
-  {
-    MaterialDesc desc;
-    desc.Shininess = 0.5f;
-    desc.Specular = Float4(1.0f, 1.0f, 1.0f, 1.0f);
-    desc.Diffuse = Float4(1.0f, 0.2f, 0.8f, 1.0f);
-    desc.Ambient = Float4(1.0f, 0.2f, 0.8f, 1.0f);
-    m_Material = m_RenderDevice->CreateMaterial(desc);
+    ModelDesc desc;
+    desc.Path = "resources/car.obj";
+    m_Model = m_RenderDevice->CreateModel(desc);
   }
 }
 
@@ -166,7 +91,7 @@ void EditorLayer::OnRender(const Ref<Framebuffer>& framebuffer)
     RenderCommand::BeginRenderPass(scenePass);
     
     Renderer::Begin(m_CameraController.GetCamera());
-    Renderer::Submit(m_Mesh, m_Material);
+    Renderer::Submit(m_Model);
     Renderer::End();
     
     RenderCommand::EndRenderPass();

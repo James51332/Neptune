@@ -30,6 +30,9 @@
 #include "renderer/Sync.h"
 #include "renderer/RenderDevice.h"
 #include "renderer/ImGuiRenderer.h"
+#include "renderer/Mesh.h"
+#include "renderer/Material.h"
+#include "renderer/Model.h"
 
 // ----- Math ----------
 #include "math/Vector.h"

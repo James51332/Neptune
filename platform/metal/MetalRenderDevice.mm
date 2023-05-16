@@ -138,6 +138,11 @@ Ref<Material> MetalRenderDevice::CreateMaterial(const MaterialDesc& desc)
   return Ref<Material>(new Material(desc));
 }
 
+Ref<Model> MetalRenderDevice::CreateModel(const ModelDesc& desc)
+{
+  return Ref<Model>(new Model(this, desc));
+}
+
 void MetalRenderDevice::Submit(CommandBuffer buffer)
 {
   if (m_IdleFence->Status())

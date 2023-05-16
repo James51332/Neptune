@@ -30,6 +30,7 @@ public:
   static void End();
   
   static void Submit(const Ref<Mesh>& mesh, const Ref<Material>& material);
+  static void Submit(const Ref<Model>& model);
   
 private:
   static RenderAPI s_API;

@@ -1,4 +1,5 @@
 #pragma once
+
 #include "renderer/RenderDevice.h"
 
 namespace Neptune
@@ -32,6 +33,7 @@ public:
   
   Ref<Mesh> CreateMesh(const MeshDesc& desc);
   Ref<Material> CreateMaterial(const MaterialDesc& desc);
+  Ref<Model> CreateModel(const ModelDesc& desc);
   
   void Submit(CommandBuffer buffer);
   void Submit(CommandBuffer buffer, const Ref<Fence>& fence);

@@ -8,6 +8,7 @@
 #include "Texture.h"
 #include "Mesh.h"
 #include "Material.h"
+#include "Model.h"
 
 namespace Neptune
 {
@@ -33,6 +34,7 @@ public:
   
   virtual Ref<Mesh> CreateMesh(const MeshDesc& desc) = 0;
   virtual Ref<Material> CreateMaterial(const MaterialDesc& desc) = 0;
+  virtual Ref<Model> CreateModel(const ModelDesc& desc) = 0;
   
   virtual void Submit(CommandBuffer buffer) = 0;
   virtual void Submit(CommandBuffer buffer, const Ref<Fence>& fence) = 0;
