@@ -11,3 +11,6 @@
 	path = thirdparty/imgui/imgui
 	url = https://github.com/ocornut/imgui
 	branch = docking
+[submodule "thirdparty/assimp/assimp"]
+	path = thirdparty/assimp/assimp
+	url = https://github.com/assimp/assimp

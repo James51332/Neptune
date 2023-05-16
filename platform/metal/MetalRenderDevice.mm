@@ -114,6 +114,25 @@ Ref<Texture> MetalRenderDevice::LoadTexture(const String &path)
   return CreateTexture(desc);
 }
 
+Ref<Mesh> MetalRenderDevice::CreateMesh(const MeshDesc &desc)
+{
+  BufferDesc vbDesc;
+  vbDesc.Size = desc.NumVertices * sizeof(MeshVertex);
+  vbDesc.Type = BufferType::Vertex;
+  vbDesc.Usage = BufferUsage::Static; // TODO: May change eventually
+  vbDesc.Data = desc.Vertices;
+  Ref<Buffer> vb = CreateBuffer(vbDesc);
+  
+  BufferDesc ibDesc;
+  ibDesc.Size = desc.NumIndices * sizeof(MeshIndex);
+  ibDesc.Type = BufferType::Index;
+  ibDesc.Usage = BufferUsage::Static;
+  ibDesc.Data = desc.Indices;
+  Ref<Buffer> ib = CreateBuffer(ibDesc);
+  
+  return Ref<Mesh>(new Mesh(vb, ib));
+}
+
 void MetalRenderDevice::Submit(CommandBuffer buffer)
 {
   if (m_IdleFence->Status())

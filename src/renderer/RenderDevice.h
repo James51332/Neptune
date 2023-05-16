@@ -6,6 +6,7 @@
 #include "RenderCommand.h"
 #include "Buffer.h"
 #include "Texture.h"
+#include "Mesh.h"
 
 namespace Neptune
 {
@@ -28,6 +29,8 @@ public:
   
   virtual Ref<Texture> CreateTexture(const TextureDesc& desc) = 0;
   virtual Ref<Texture> LoadTexture(const String& path) = 0;
+  
+  virtual Ref<Mesh> CreateMesh(const MeshDesc& desc) = 0;
   
   virtual void Submit(CommandBuffer buffer) = 0;
   virtual void Submit(CommandBuffer buffer, const Ref<Fence>& fence) = 0;

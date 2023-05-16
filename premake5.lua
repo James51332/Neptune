@@ -25,6 +25,10 @@ includeDirs["glm"] = "thirdparty/glm"
 includeDirs["stb_image"] = "thirdparty/stb_image"
 includeDirs["imgui"] = "thirdparty/imgui"
 includeDirs["OpenFBX"] = "thirdparty/OpenFBX"
+includeDirs["assimp"] = "thirdparty/assimp/assimp/include"
+
+libDirs = {}
+libDirs["assimp"] = "thirdparty/assimp/lib/%{cfg.shortname}"
 
 project "Neptune"
 	kind "StaticLib"
@@ -64,8 +68,20 @@ project "Neptune"
   	includeDirs["glm"],
   	includeDirs["stb_image"],
   	includeDirs["imgui"],
-  	includeDirs["OpenFBX"]
+  	includeDirs["OpenFBX"],
+  	includeDirs["assimp"]
 	}
+	
+  links
+	{
+		"assimp",
+  	"zlibstatic"
+	}
+	
+	libdirs
+	{
+		libDirs["assimp"]
+  }
 
 	filter "system:windows"
 		systemversion "latest"
@@ -114,9 +130,16 @@ project "Editor"
 		"editor/**.h"
 	} 
 
+	libdirs
+	{
+		libDirs["assimp"]
+  }
+
 	links
 	{
-		"Neptune"
+		"Neptune",
+  	"assimp",
+   	"zlibstatic"
 	}
 	
 	includedirs
@@ -134,7 +157,8 @@ project "Editor"
     includeDirs["glm"],
     includeDirs["stb_image"],
   	includeDirs["imgui"],
-  	includeDirs["OpenFBX"]
+  	includeDirs["OpenFBX"],
+  	includeDirs["assimp"]
 	}
 	
   filter "system:windows"

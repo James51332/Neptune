@@ -30,6 +30,8 @@ public:
   Ref<Texture> CreateTexture(const TextureDesc& desc);
   Ref<Texture> LoadTexture(const String& path);
   
+  Ref<Mesh> CreateMesh(const MeshDesc& desc);
+  
   void Submit(CommandBuffer buffer);
   void Submit(CommandBuffer buffer, const Ref<Fence>& fence);
   

@@ -2,7 +2,9 @@
 #include "EditorLayer.h"
 
 #include <imgui/imgui.h>
-#include <OpenFBX/ofbx.h>
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
 
 #include <iostream>
 #include <fstream>
@@ -21,13 +23,15 @@ using namespace metal;
 struct VSInput
 {
   float3 position [[attribute(0)]];
-	float3 normal [[attribute(1)]];
+ 	float3 normal [[attribute(1)]];
+	float4 color [[attribute(2)]];
+	float2 uv [[attribute(3)]];
 };
 
 struct FSInput
 {
   float4 position [[position]];
-	float4 color;
+ 	float4 color;
 };
 
 struct Uniform
@@ -38,11 +42,11 @@ struct Uniform
 vertex FSInput vertexFunc(VSInput in [[stage_in]],
                         constant Uniform& uniform [[buffer(1)]])
 {
-	float3 envLightDir(0, 1, 0);
+  float3 envLightDir(0, 1, 0);
 
   FSInput out;
   out.position = uniform.viewProjection * float4(in.position , 1);
-	out.color = float4(float3(max(dot(abs(in.normal), envLightDir),0.0f)), 1);
+ 	out.color = in.color * float4(float3(max(dot(abs(in.normal), envLightDir), 0.0f)), 1);
   return out;
 }
 
@@ -52,7 +56,7 @@ fragment float4 fragmentFunc(FSInput in [[stage_in]])
 })";
 
 EditorLayer::EditorLayer()
-	: Layer("Editor Layer")
+: Layer("Editor Layer")
 {
   
 }
@@ -61,8 +65,6 @@ EditorLayer::~EditorLayer()
 {
   
 }
-
-ofbx::IScene* scene;
 
 void EditorLayer::OnInit(const Ref<RenderDevice>& device)
 {
@@ -97,95 +99,102 @@ void EditorLayer::OnInit(const Ref<RenderDevice>& device)
   
   // Try load a model or sum
   {
-    std::ifstream fs("resources/gun.fbx");
-    std::stringstream ss;
-    ss << fs.rdbuf();
-    std::string string = ss.str();
+    Assimp::Importer importer;
+    const aiScene* scene = importer.ReadFile("resources/gun.fbx", aiProcess_Triangulate | aiProcess_GenNormals);
     
-    const ofbx::u8* data = reinterpret_cast<const ofbx::u8*>(string.c_str());
-    scene = ofbx::load(data, static_cast<int>(string.length()), static_cast<ofbx::u64>(ofbx::LoadFlags::TRIANGULATE));
+    if (!scene || !scene->mRootNode || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE)
+    {
+      NEPTUNE_ERROR("Failed to open scene!");
+    }
+    
+    aiMesh* mesh = scene->mMeshes[3];
+    
+    MeshDesc desc;
+    desc.NumVertices = mesh->mNumVertices;
+    DynamicArray<MeshVertex> vertices;
+    DynamicArray<MeshIndex> indices;
+    
+    for (Size i = 0; i < desc.NumVertices; i++)
+    {
+      MeshVertex vertex;
+      
+      Float3 position;
+      position.x = mesh->mVertices[i].x;
+      position.y = mesh->mVertices[i].y;
+      position.z = mesh->mVertices[i].z;
+      vertex.Position = position;
+      
+      Float3 normal;
+      normal.x = mesh->mNormals[i].x;
+      normal.y = mesh->mNormals[i].y;
+      normal.z = mesh->mNormals[i].z;
+      vertex.Normal = normal;
+      
+      Float4 color = Float4(1.0);
+      if (mesh->mColors[0])
+      {
+      	color.r = mesh->mColors[i]->r;
+      	color.g = mesh->mColors[i]->g;
+      	color.b = mesh->mColors[i]->b;
+      	color.a = mesh->mColors[i]->a;
+      }
+      vertex.Color = color;
+      
+      Float2 uv = Float2(0.0f);
+      if(mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
+      {
+        uv.x = mesh->mTextureCoords[0][i].x;
+        uv.y = mesh->mTextureCoords[0][i].y;
+      }
+      vertex.UV = uv;
+      
+      vertices.PushBack(vertex);
+    }
+    
+    desc.Vertices = &vertices[0];
+    
+    for(Size i = 0; i < mesh->mNumFaces; i++)
+    {
+      aiFace face = mesh->mFaces[i];
+      for(Size j = 0; j < face.mNumIndices; j++)
+        indices.PushBack(face.mIndices[j]);
+    }
+    
+    desc.Indices = &indices[0];
+    desc.NumIndices = indices.Size();
+    m_Mesh = m_RenderDevice->CreateMesh(desc);
   }
-
+  
   {
-    Int32 meshes = scene->getMeshCount();
-    for (Int32 i = (meshes - 1); i >= 0; i--)
-    {
-      const ofbx::Mesh* mesh = scene->getMesh(static_cast<int>(i));
-      
-      struct Vertex
-      {
-        Float3 pos;
-        Float3 normal;
-      };
-      
-      const ofbx::Geometry* geo = mesh->getGeometry();
-      const ofbx::Vec3* vert = geo->getVertices();
-      const ofbx::Vec3* norm = geo->getNormals();
-      const int cnt = geo->getVertexCount();
-        
-      Vertex* vertices = new Vertex[cnt];
-      for (int i = 0; i < cnt; i++)
-      {
-        vertices[i].pos = { vert[i].x, vert[i].y, vert[i].z };
-        vertices[i].normal = { norm[i].x, norm[i].y, norm[i].z };
-      }
-      
-      BufferDesc vbDesc;
-      vbDesc.Type = BufferType::Vertex;
-      vbDesc.Size = cnt * sizeof(Vertex);
-      vbDesc.Data = (void*)vertices;
-      vbDesc.Usage = BufferUsage::Static;
-      m_VB = m_RenderDevice->CreateBuffer(vbDesc);
-      
-      delete[] vertices;
-        
-      const int indexCount = geo->getIndexCount();
-      const int* faceIndices = geo->getFaceIndices();
-        
-      UInt16* indices = new UInt16[indexCount];
-      
-      for (int i = 0; i < indexCount; i++)
-      {
-        indices[i] = faceIndices[i] >= 0 ? faceIndices[i] : ~faceIndices[i];
-      }
-      
-      BufferDesc ibDesc;
-      ibDesc.Type = BufferType::Index;
-      ibDesc.Usage = BufferUsage::Static;
-      ibDesc.Size = sizeof(UInt16) * indexCount;
-      ibDesc.Data = (void*)indices;
-      m_IB = m_RenderDevice->CreateBuffer(ibDesc);
-      
-      delete[] indices;
-      
-      BufferDesc ubDesc;
-      ubDesc.Type = BufferType::Uniform;
-      ubDesc.Usage = BufferUsage::Dynamic;
-      ubDesc.Size = sizeof(Matrix4);
-      ubDesc.Data = (void*)&m_CameraController.GetCamera().GetViewProjectionMatrix()[0][0];
-      m_UB = m_RenderDevice->CreateBuffer(ubDesc);
-    }
+    BufferDesc ubDesc;
+    ubDesc.Type = BufferType::Uniform;
+    ubDesc.Usage = BufferUsage::Dynamic;
+    ubDesc.Size = sizeof(Matrix4);
+    ubDesc.Data = (void*)&m_CameraController.GetCamera().GetViewProjectionMatrix()[0][0];
+    m_UB = m_RenderDevice->CreateBuffer(ubDesc);
+  }
+  
+  {
+    PipelineStateDesc desc;
     
-    {
-      PipelineStateDesc desc;
-      
-      desc.Layout = {
-        { PipelineAttributeType::Float3, "Position" },
-        { PipelineAttributeType::Float3, "Normal" }
-      };
-      
-      DepthStencilState dss;
-      dss.DepthWriteEnabled = true;
-      dss.Function = CompareFunction::Less;
-      desc.DepthStencilState = dss;
-      
-      ShaderDesc s;
-      s.vertexSrc = meshSrc;
-      s.fragmentSrc = meshSrc;
-      desc.Shader = m_RenderDevice->CreateShader(s);
-      
-      m_Pipeline = m_RenderDevice->CreatePipelineState(desc);
-    }
+    desc.Layout = {
+      { PipelineAttributeType::Float3, "Position" },
+      { PipelineAttributeType::Float3, "Normal" },
+      { PipelineAttributeType::Float4, "Color" },
+      { PipelineAttributeType::Float2, "UV" }
+    };
+    
+    DepthStencilState dss;
+    dss.DepthWriteEnabled = true;
+    dss.Function = CompareFunction::Less;
+    desc.DepthStencilState = dss;
+    
+    ShaderDesc s;
+    s.vertexSrc = meshSrc;
+    s.fragmentSrc = meshSrc;
+    desc.Shader = m_RenderDevice->CreateShader(s);
+    
+    m_Pipeline = m_RenderDevice->CreatePipelineState(desc);
   }
 }
 
@@ -218,19 +227,11 @@ void EditorLayer::OnRender(const Ref<Framebuffer>& framebuffer)
       scenePass.Framebuffer = m_Framebuffers[Renderer::GetFrameNumber()];
     }
     RenderCommand::BeginRenderPass(scenePass);
-
-    RenderCommand::SetVertexBuffer(m_VB, 0);
+    
     RenderCommand::SetVertexBuffer(m_UB, 1);
     RenderCommand::SetPipelineState(m_Pipeline);
-    
-    DrawCommandDesc cmd;
-    cmd.Type = PrimitiveType::Triangle;
-    cmd.IndexBuffer = m_IB;
-    cmd.Indexed = true;
-    cmd.IndexType = IndexType::UInt16;
-    cmd.Count = m_IB->GetSize() / sizeof(UInt16);
-    cmd.Offset = 0;
-    RenderCommand::Submit(cmd);
+    RenderCommand::BindTexture(m_Texture, 0);
+    RenderCommand::Submit(m_Mesh);
     
     RenderCommand::EndRenderPass();
   }
@@ -245,9 +246,9 @@ void EditorLayer::OnRender(const Ref<Framebuffer>& framebuffer)
       renderPass.Framebuffer = framebuffer;
     }
     RenderCommand::BeginRenderPass(renderPass);
-
+    
     ImGUIRenderer::Render();
-
+    
     RenderCommand::EndRenderPass();
   }
 }
@@ -277,4 +278,4 @@ void EditorLayer::OnEvent(Scope<Event>& e)
 }
 
 } // namespace Neptune
-                     
+

@@ -4,6 +4,8 @@
 
 #include "renderer/RenderContext.h"
 #include "renderer/RenderDevice.h"
+#include "renderer/Camera.h"
+#include "renderer/Mesh.h"
 
 namespace Neptune
 {
@@ -19,6 +21,11 @@ public:
   static RenderAPI GetAPI() noexcept;
   static Size GetMaxFramesInFlight() noexcept;
   static Size GetFrameNumber() noexcept;
+  
+  static void Begin(const Camera& camera);
+  static void End();
+  
+  static void Submit(const Ref<Mesh>& mesh);
   
 private:
   static RenderAPI s_API;

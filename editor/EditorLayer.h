@@ -33,6 +33,7 @@ private:
   Ref<Buffer> m_IB;
   Ref<Buffer> m_UB;
   Ref<PipelineState> m_Pipeline;
+  Ref<Mesh> m_Mesh;
 };
 
 } // namespace Neptune
