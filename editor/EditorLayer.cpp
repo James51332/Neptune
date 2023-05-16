@@ -16,45 +16,6 @@
 namespace Neptune
 {
 
-const char* meshSrc = R"(
-#include <metal_stdlib>
-using namespace metal;
-
-struct VSInput
-{
-  float3 position [[attribute(0)]];
- 	float3 normal [[attribute(1)]];
-	float4 color [[attribute(2)]];
-	float2 uv [[attribute(3)]];
-};
-
-struct FSInput
-{
-  float4 position [[position]];
- 	float4 color;
-};
-
-struct Uniform
-{
-  float4x4 viewProjection;
-};
-
-vertex FSInput vertexFunc(VSInput in [[stage_in]],
-                        constant Uniform& uniform [[buffer(1)]])
-{
-  float3 envLightDir(0, 1, 0);
-
-  FSInput out;
-  out.position = uniform.viewProjection * float4(in.position , 1);
- 	out.color = in.color * float4(float3(max(dot(abs(in.normal), envLightDir), 0.0f)), 1);
-  return out;
-}
-
-fragment float4 fragmentFunc(FSInput in [[stage_in]])
-{
-  return in.color;
-})";
-
 EditorLayer::EditorLayer()
 : Layer("Editor Layer")
 {
@@ -166,35 +127,12 @@ void EditorLayer::OnInit(const Ref<RenderDevice>& device)
   }
   
   {
-    BufferDesc ubDesc;
-    ubDesc.Type = BufferType::Uniform;
-    ubDesc.Usage = BufferUsage::Dynamic;
-    ubDesc.Size = sizeof(Matrix4);
-    ubDesc.Data = (void*)&m_CameraController.GetCamera().GetViewProjectionMatrix()[0][0];
-    m_UB = m_RenderDevice->CreateBuffer(ubDesc);
-  }
-  
-  {
-    PipelineStateDesc desc;
-    
-    desc.Layout = {
-      { PipelineAttributeType::Float3, "Position" },
-      { PipelineAttributeType::Float3, "Normal" },
-      { PipelineAttributeType::Float4, "Color" },
-      { PipelineAttributeType::Float2, "UV" }
-    };
-    
-    DepthStencilState dss;
-    dss.DepthWriteEnabled = true;
-    dss.Function = CompareFunction::Less;
-    desc.DepthStencilState = dss;
-    
-    ShaderDesc s;
-    s.vertexSrc = meshSrc;
-    s.fragmentSrc = meshSrc;
-    desc.Shader = m_RenderDevice->CreateShader(s);
-    
-    m_Pipeline = m_RenderDevice->CreatePipelineState(desc);
+    MaterialDesc desc;
+    desc.Shininess = 0.5f;
+    desc.Specular = Float4(1.0f, 1.0f, 1.0f, 1.0f);
+    desc.Diffuse = Float4(1.0f, 0.2f, 0.8f, 1.0f);
+    desc.Ambient = Float4(1.0f, 0.2f, 0.8f, 1.0f);
+    m_Material = m_RenderDevice->CreateMaterial(desc);
   }
 }
 
@@ -205,7 +143,6 @@ void EditorLayer::OnTerminate()
 void EditorLayer::OnUpdate()
 {
   m_CameraController.OnUpdate();
-  m_UB->Update(sizeof(Matrix4), &m_CameraController.GetCamera().GetViewProjectionMatrix()[0][0]);
   
   // Resize Framebuffer
   {
@@ -228,10 +165,9 @@ void EditorLayer::OnRender(const Ref<Framebuffer>& framebuffer)
     }
     RenderCommand::BeginRenderPass(scenePass);
     
-    RenderCommand::SetVertexBuffer(m_UB, 1);
-    RenderCommand::SetPipelineState(m_Pipeline);
-    RenderCommand::BindTexture(m_Texture, 0);
-    RenderCommand::Submit(m_Mesh);
+    Renderer::Begin(m_CameraController.GetCamera());
+    Renderer::Submit(m_Mesh, m_Material);
+    Renderer::End();
     
     RenderCommand::EndRenderPass();
   }

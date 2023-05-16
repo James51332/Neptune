@@ -36,7 +36,7 @@ class Mesh
 {
   friend class MetalRenderDevice;
   
-  friend class RenderCommand;
+  friend class Renderer;
 public:
   ~Mesh() = default;
   

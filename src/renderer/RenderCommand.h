@@ -97,7 +97,6 @@ public:
   static void BindTexture(const Ref<Texture>& texture, Size index = 0);
   
   static void Submit(const DrawCommandDesc& desc);
-  static void Submit(const Ref<Mesh>& mesh);
   
 private:
   static Ref<RenderCommandEncoder> s_Encoder;

@@ -28,12 +28,9 @@ private:
   
   Ref<Texture> m_Texture; 
   CameraController m_CameraController;
-
-  Ref<Buffer> m_VB;
-  Ref<Buffer> m_IB;
-  Ref<Buffer> m_UB;
-  Ref<PipelineState> m_Pipeline;
+  
   Ref<Mesh> m_Mesh;
+  Ref<Material> m_Material;
 };
 
 } // namespace Neptune

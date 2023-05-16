@@ -64,20 +64,6 @@ void RenderCommand::Submit(const DrawCommandDesc& desc)
   s_Encoder->Submit(desc);
 }
 
-void RenderCommand::Submit(const Ref<Mesh>& mesh)
-{
-  RenderCommand::SetVertexBuffer(mesh->m_VertexBuffer, 0);
-  
-  DrawCommandDesc cmd;
-  cmd.Type = PrimitiveType::Triangle;
-  cmd.IndexBuffer = mesh->m_IndexBuffer;
-  cmd.Indexed = true;
-  cmd.IndexType = IndexType::UInt32;
-  cmd.Count = mesh->m_IndexBuffer->GetSize() / sizeof(MeshIndex);
-  cmd.Offset = 0;
-  RenderCommand::Submit(cmd);
-}
-
 
 } // namespace Neptune
 
