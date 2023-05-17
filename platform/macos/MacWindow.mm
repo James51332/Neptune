@@ -61,6 +61,9 @@
 {
   Neptune::MacWindow* windowHandle;
   NSAttributedString* string;
+  
+  UInt64 modifierStates;
+  UInt64 usedModifiers; // Mask to 0 all unimportant modifier flags
 }
 
 - (id) initWithWindow: (Neptune::MacWindow*) window;
@@ -71,10 +74,17 @@ static const NSRange emptyRange = NSMakeRange(NSNotFound, 0);
 
 - (id) initWithWindow: (Neptune::MacWindow*) window
 {
-	if (self = [super init])
+  if (self = [super init])
   {
-    windowHandle = window;
-  }
+  	windowHandle = window;
+  	
+  	modifierStates = 0;
+  	usedModifiers = NSEventModifierFlagOption
+  	| NSEventModifierFlagShift
+  	| NSEventModifierFlagCommand
+  	| NSEventModifierFlagCapsLock
+  	| NSEventModifierFlagControl;
+	}
   return self;
 }
 
@@ -258,7 +268,26 @@ static const NSRange emptyRange = NSMakeRange(NSNotFound, 0);
 
 - (void)flagsChanged:(NSEvent *)event
 {
-  // TODO: Modifier key presses
+  unsigned long changed = ([event modifierFlags] ^ modifierStates) & usedModifiers;
+  
+  // We can't distinguish left and right modifiers. All will be processed as lefts.
+  Neptune::KeyCode key;
+  switch (changed)
+  {
+    case NSEventModifierFlagOption: key = Neptune::KeyLeftAlt; break;
+    case NSEventModifierFlagShift: key = Neptune::KeyLeftShift; break;
+    case NSEventModifierFlagCommand: key = Neptune::KeyLeftSuper; break;
+    case NSEventModifierFlagCapsLock: key = Neptune::KeyCapsLock; break;
+    case NSEventModifierFlagControl: key = Neptune::KeyLeftControl; break;
+    default: return; // We don't care about any others
+  }
+  
+  if (changed & modifierStates) // Key released (difference is on a bit that was 1)
+    Neptune::Application::PushEvent(Neptune::CreateScope<Neptune::KeyReleasedEvent>(key));
+  else
+    Neptune::Application::PushEvent(Neptune::CreateScope<Neptune::KeyPressedEvent>(key));
+  
+  modifierStates = [event modifierFlags];
 }
 @end
 
@@ -295,7 +324,7 @@ MacWindow::MacWindow(const WindowDesc& desc)
   
   [window setDelegate: (NeptuneWindowDelegate*)m_WindowDelegate];
   
-  m_View = [[NeptuneView alloc] initWithFrame: content];
+  m_View = [[NeptuneView alloc] initWithWindow: this];
   NEPTUNE_ASSERT(m_View, "Failed to create view!");
   
   [window setAcceptsMouseMovedEvents: YES];
