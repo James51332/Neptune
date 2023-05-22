@@ -83,7 +83,7 @@ void EditorLayer::OnRender(const Ref<Framebuffer>& framebuffer)
   {
     RenderPass scenePass;
     {
-      scenePass.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+      scenePass.ClearColor = { 1.0f, 1.0f, 0.0f, 1.0f };
       scenePass.LoadAction = LoadAction::Clear;
       scenePass.StoreAction = StoreAction::Store;
       scenePass.Framebuffer = m_Framebuffers[Renderer::GetFrameNumber()];
@@ -91,6 +91,7 @@ void EditorLayer::OnRender(const Ref<Framebuffer>& framebuffer)
     RenderCommand::BeginRenderPass(scenePass);
     
     Renderer::Begin(m_CameraController.GetCamera());
+    Renderer::SetLight(m_LightPos, {1.0f, 1.0f, 0.0f, 1.0f});
     Renderer::Submit(m_Model);
     Renderer::End();
     
@@ -130,6 +131,18 @@ void EditorLayer::OnImGuiRender()
     
     ImGui::End();
     ImGui::PopStyleVar();
+  }
+  
+  // Viewport
+  {
+    ImGui::Begin("Settings");
+    ImGui::DragFloat3("Light Pos", &m_LightPos[0]);
+    
+    CameraDesc camDesc = m_CameraController.GetCamera().GetDesc();
+    ImGui::DragFloat3("Camera Pos", &camDesc.Position[0]);
+    m_CameraController.GetCamera().SetDesc(camDesc);
+    
+    ImGui::End();
   }
 }
 

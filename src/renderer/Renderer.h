@@ -29,6 +29,9 @@ public:
   static void Begin(const Camera& camera);
   static void End();
   
+  // I'm not sure how the lighting system will work, but for now this will be the source of our light.
+  static void SetLight(const Float3& lightPos, const Float4& color = Float4(1.0f));
+  
   static void Submit(const Ref<Mesh>& mesh, const Ref<Material>& material);
   static void Submit(const Ref<Model>& model);
   
@@ -41,6 +44,8 @@ private:
   static Camera s_SceneCamera;
   static Ref<Buffer> s_UniformBuffer;
   static Ref<PipelineState> s_MeshPipeline;
+  static Ref<Buffer> s_LightUniformBuffer;
+  static Float3 s_LightPos;
 };
 
 } // namespace Neptune
