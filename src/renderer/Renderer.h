@@ -32,8 +32,8 @@ public:
   // I'm not sure how the lighting system will work, but for now this will be the source of our light.
   static void SetLight(const Float3& lightPos, const Float4& color = Float4(1.0f));
   
-  static void Submit(const Ref<Mesh>& mesh, const Ref<Material>& material);
-  static void Submit(const Ref<Model>& model);
+  static void Submit(const Ref<Mesh>& mesh, const Ref<Material>& material, const Matrix4& transform = Matrix4(1.0f));
+  static void Submit(const Ref<Model>& model, const Matrix4& transform = Matrix4(1.0f));
   
 private:
   static RenderAPI s_API;
@@ -45,6 +45,7 @@ private:
   static Ref<Buffer> s_UniformBuffer;
   static Ref<PipelineState> s_MeshPipeline;
   static Ref<Buffer> s_LightUniformBuffer;
+  static Ref<Buffer> s_ModelUniformBuffer;
   static Float3 s_LightPos;
 };
 

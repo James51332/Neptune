@@ -59,6 +59,13 @@ void EditorLayer::OnInit(const Ref<RenderDevice>& device)
     desc.Path = "resources/car.obj";
     m_Model = m_RenderDevice->CreateModel(desc);
   }
+  
+  // ECS Test
+  {
+    m_Entity = m_Scene.CreateEntity();
+  	auto& transform = m_Entity.AddComponent<TransformComponent>();
+    transform.Position.x = 1.0f;
+  }
 }
 
 void EditorLayer::OnTerminate()
@@ -92,7 +99,7 @@ void EditorLayer::OnRender(const Ref<Framebuffer>& framebuffer)
     
     Renderer::Begin(m_CameraController.GetCamera());
     Renderer::SetLight(m_LightPos, {1.0f, 1.0f, 0.0f, 1.0f});
-    Renderer::Submit(m_Model);
+    Renderer::Submit(m_Model, glm::translate(Matrix4(1.0f), m_ModelPos));
     Renderer::End();
     
     RenderCommand::EndRenderPass();
@@ -137,6 +144,8 @@ void EditorLayer::OnImGuiRender()
   {
     ImGui::Begin("Settings");
     ImGui::DragFloat3("Light Pos", &m_LightPos[0]);
+    
+    ImGui::DragFloat3("Model Pos", &m_ModelPos[0]);
     
     CameraDesc camDesc = m_CameraController.GetCamera().GetDesc();
     ImGui::DragFloat3("Camera Pos", &camDesc.Position[0]);

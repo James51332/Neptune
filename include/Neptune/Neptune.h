@@ -45,6 +45,11 @@
 #include "core/WindowEvent.h"
 #include "core/EventQueue.h"
 
+// ----- Scene ------------
+#include "scene/Scene.h"
+#include "scene/Entity.h"
+#include "scene/Components.h"
+
 // ----- Utilities ------------
 #include "utils/Utils.h"
 #include "utils/Types.h"

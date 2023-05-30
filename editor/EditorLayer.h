@@ -30,8 +30,11 @@ private:
   CameraController m_CameraController;
   
   Ref<Model> m_Model;
-  
+  Float3 m_ModelPos {0.0f, 0.0f, 0.0f};
   Float3 m_LightPos {0.0f, 5.0f, 0.0f};
+  
+  Scene m_Scene;
+  Entity m_Entity;
 };
 
 } // namespace Neptune

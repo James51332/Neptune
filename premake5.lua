@@ -26,6 +26,7 @@ includeDirs["stb_image"] = "thirdparty/stb_image"
 includeDirs["imgui"] = "thirdparty/imgui"
 includeDirs["OpenFBX"] = "thirdparty/OpenFBX"
 includeDirs["assimp"] = "thirdparty/assimp/assimp/include"
+includeDirs["entt"] = "thirdparty/entt/single_include"
 
 libDirs = {}
 libDirs["assimp"] = "thirdparty/assimp/lib/%{cfg.shortname}"
@@ -69,7 +70,8 @@ project "Neptune"
   	includeDirs["stb_image"],
   	includeDirs["imgui"],
   	includeDirs["OpenFBX"],
-  	includeDirs["assimp"]
+  	includeDirs["assimp"],
+   	includeDirs["entt"]
 	}
 	
   links
@@ -158,7 +160,8 @@ project "Editor"
     includeDirs["stb_image"],
   	includeDirs["imgui"],
   	includeDirs["OpenFBX"],
-  	includeDirs["assimp"]
+  	includeDirs["assimp"],
+  	includeDirs["entt"]
 	}
 	
   filter "system:windows"

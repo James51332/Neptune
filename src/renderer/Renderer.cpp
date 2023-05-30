@@ -39,13 +39,19 @@ struct WorldUniform
 	float3 camPosition;
 };
 
+struct ObjectUniform
+{
+	float4x4 model;
+};
+
 vertex FSInput vertexFunc(VSInput in [[stage_in]],
                         	constant WorldUniform& uniform [[buffer(1)]],
-													constant Light& light [[buffer(2)]])
+													constant Light& light [[buffer(2)]],
+													constant ObjectUniform& object [[buffer(3)]])
 {
 
   FSInput out;
-  out.position = uniform.viewProjection * float4(in.position, 1);
+  out.position = uniform.viewProjection * object.model * float4(in.position, 1);
   out.worldPos = in.position;
 	out.camPos = uniform.camPosition;
   out.normal = in.normal;
@@ -86,6 +92,7 @@ Camera Renderer::s_SceneCamera;
 Ref<Buffer> Renderer::s_UniformBuffer;
 Ref<Buffer> Renderer::s_LightUniformBuffer;
 Ref<PipelineState> Renderer::s_MeshPipeline;
+Ref<Buffer> Renderer::s_ModelUniformBuffer;
 Float3 Renderer::s_LightPos;
 
 void Renderer::OnInit(Ref<RenderDevice>& device, Size width, Size height)
@@ -111,6 +118,16 @@ void Renderer::OnInit(Ref<RenderDevice>& device, Size width, Size height)
     ubDesc.Size = 32;
     ubDesc.Data = nullptr;
     s_LightUniformBuffer = device->CreateBuffer(ubDesc);
+  }
+  
+  // Create Model Uniform Buffer
+  {
+    BufferDesc ubDesc;
+    ubDesc.Type = BufferType::Uniform;
+    ubDesc.Usage = BufferUsage::Dynamic;
+    ubDesc.Size = sizeof(Matrix4);
+    ubDesc.Data = nullptr;
+    s_ModelUniformBuffer = device->CreateBuffer(ubDesc);
   }
   
   // Create Mesh Pipeline
@@ -210,13 +227,17 @@ void Renderer::SetLight(const Float3 &lightPos, const Float4& color)
   s_LightUniformBuffer->Update(sizeof(Light), &light);
 }
 
-void Renderer::Submit(const Ref<Mesh> &mesh, const Ref<Material> &material)
+void Renderer::Submit(const Ref<Mesh> &mesh, const Ref<Material> &material, const Matrix4& transform)
 {
   NEPTUNE_ASSERT(s_Recording, "Renderer is not recording!");
 
   RenderCommand::SetVertexBuffer(mesh->m_VertexBuffer, 0);
   RenderCommand::SetVertexBuffer(s_UniformBuffer, 1);
   RenderCommand::SetVertexBuffer(s_LightUniformBuffer, 2);
+  
+  s_ModelUniformBuffer->Update(sizeof(Matrix4), &transform[0][0]);
+  RenderCommand::SetVertexBuffer(s_ModelUniformBuffer, 3);
+  
   RenderCommand::SetPipelineState(s_MeshPipeline);
   
   DrawCommandDesc cmd;
@@ -229,11 +250,11 @@ void Renderer::Submit(const Ref<Mesh> &mesh, const Ref<Material> &material)
   RenderCommand::Submit(cmd);
 }
 
-void Renderer::Submit(const Ref<Model> &model)
+void Renderer::Submit(const Ref<Model> &model, const Matrix4& transform)
 {
   for (auto mesh : model->m_Meshes)
   {
-    Submit(mesh, model->m_Materials[0]);
+    Submit(mesh, model->m_Materials[0], transform);
   }
 }
 
