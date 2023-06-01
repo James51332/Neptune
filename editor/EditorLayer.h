@@ -1,6 +1,7 @@
 #pragma once
 
-#include "EntityList.h"
+#include "panels/Panel.h"
+#include "panels/Viewport.h"
 
 #include <Neptune/Neptune.h>
 
@@ -25,12 +26,8 @@ public:
 private:
   Ref<RenderDevice> m_RenderDevice;
   
-  DynamicArray<Ref<Framebuffer>> m_Framebuffers;
-  Float2 m_ViewportSize = { 800, 600 };
-  
   DynamicArray<Panel*> m_Panels;
-  
-  CameraController m_CameraController;
+  Viewport* m_Viewport;
   
   Scene m_Scene;
   Entity m_Entity;
