@@ -66,10 +66,16 @@ void Viewport::OnUpdate()
 
 void Viewport::OnRender()
 {
-  // Resize framebuffer if it doesn't fit
+  // Resize framebuffer and camera if it doesn't fit
   FramebufferDesc desc = m_Framebuffers[Renderer::GetFrameNumber()]->GetDesc();
   if (desc.Width != m_ViewportSize.x || desc.Height != m_ViewportSize.y)
+  {
     m_Framebuffers[Renderer::GetFrameNumber()]->Resize(m_ViewportSize.x, m_ViewportSize.y);
+    
+    auto desc = m_CameraController.GetCamera().GetDesc();
+    desc.Aspect = m_ViewportSize.x / m_ViewportSize.y;
+    m_CameraController.GetCamera().SetDesc(desc);
+  }
   
   // Scene Pass
   {

@@ -23,6 +23,8 @@ struct ImGUIRendererData
   Ref<Buffer> UniformBuffer;
   Size NextBuffer = 0;
   
+  Float2 FramebufferSize{800, 600};
+  
   Ref<PipelineState> PipelineState;
   
   Ref<Texture> FontTexture;

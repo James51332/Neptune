@@ -72,6 +72,7 @@ void ImGUIRenderer::OnInit(const Ref<RenderDevice>& device, Size width, Size hei
   	
   	io.DisplaySize.x = width;
   	io.DisplaySize.y = height;
+    s_Data.FramebufferSize = Float2(width, height);
   	
   	io.BackendPlatformName = "Neptune";
   	io.BackendRendererName = "Neptune Renderer";
@@ -191,8 +192,9 @@ void ImGUIRenderer::Render()
   ImGui::Render();
   ImDrawData* drawData = ImGui::GetDrawData();
   
-  Size framebufferWidth = (Size)(drawData->DisplaySize.x * drawData->FramebufferScale.x);
-  Size framebufferHeight = (Size)(drawData->DisplaySize.y * drawData->FramebufferScale.y);
+  // ImGui has a bug right now so we'll keep track of this manually
+  Size framebufferWidth = (Size)(s_Data.FramebufferSize.x * drawData->FramebufferScale.x);
+  Size framebufferHeight = (Size)(s_Data.FramebufferSize.y * drawData->FramebufferScale.y);
   if (framebufferWidth <= 0 || framebufferHeight <= 0 || drawData->CmdListsCount == 0) return;
   
   // Update Uniforms
@@ -273,7 +275,7 @@ void ImGUIRenderer::OnEvent(Scope<Event> &e)
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize.x = event.GetWidth();
     io.DisplaySize.y = event.GetHeight();
-    NEPTUNE_TRACE("Window Resized: {}", s_Data.BlockEvents);
+    s_Data.FramebufferSize = {event.GetWidth(), event.GetHeight()};
     return s_Data.BlockEvents;
   });
   
