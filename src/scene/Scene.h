@@ -15,6 +15,11 @@ class Scene
 public:
   Scene();
   
+  template <typename... T>
+  auto GetView() { return m_Registry.view<T...>(); }
+  template <typename... T>
+  auto GetView() const { return m_Registry.view<T...>(); }
+  
   Entity CreateEntity();
   void DestroyEntity(Entity entity);
   

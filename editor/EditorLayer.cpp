@@ -3,13 +3,6 @@
 
 #include <imgui/imgui.h>
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-
-#define GLM_DEPTH_FORCE_ONE_TO_ZERO
-#include <glm/gtc/matrix_transform.hpp>
-
 namespace Neptune
 {
 
@@ -36,9 +29,6 @@ void EditorLayer::OnInit(const Ref<RenderDevice>& device)
       m_Framebuffers.PushBack(m_RenderDevice->CreateFramebuffer(desc));
   }
   
-  // Load Texture
-  m_Texture = m_RenderDevice->LoadTexture("resources/panda.png");
-  
   // Create Camera
   {
     CameraDesc desc;
@@ -53,18 +43,13 @@ void EditorLayer::OnInit(const Ref<RenderDevice>& device)
     m_CameraController = CameraController(cam);
   }
   
-  // Try load a model or sum
-  {
-    ModelDesc desc;
-    desc.Path = "resources/car.obj";
-    m_Model = m_RenderDevice->CreateModel(desc);
-  }
-  
   // ECS Test
   {
     m_Entity = m_Scene.CreateEntity();
-  	auto& transform = m_Entity.AddComponent<TransformComponent>();
-    transform.Position.x = 1.0f;
+  	m_Entity.AddComponent<TransformComponent>();
+    
+    auto& sprite = m_Entity.AddComponent<SpriteRendererComponent>();
+    sprite.Texture = m_RenderDevice->LoadTexture("resources/panda.png");
   }
 }
 
@@ -90,17 +75,24 @@ void EditorLayer::OnRender(const Ref<Framebuffer>& framebuffer)
   {
     RenderPass scenePass;
     {
-      scenePass.ClearColor = { 1.0f, 1.0f, 0.0f, 1.0f };
+      scenePass.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
       scenePass.LoadAction = LoadAction::Clear;
       scenePass.StoreAction = StoreAction::Store;
       scenePass.Framebuffer = m_Framebuffers[Renderer::GetFrameNumber()];
     }
     RenderCommand::BeginRenderPass(scenePass);
     
-    Renderer::Begin(m_CameraController.GetCamera());
-    Renderer::SetLight(m_LightPos, {1.0f, 1.0f, 0.0f, 1.0f});
-    Renderer::Submit(m_Model, glm::translate(Matrix4(1.0f), m_ModelPos));
-    Renderer::End();
+    Renderer2D::Begin(m_CameraController.GetCamera());
+    
+    auto view = m_Scene.GetView<TransformComponent, SpriteRendererComponent>();
+    for (auto entity : view)
+    {
+      auto transform = view.get<TransformComponent>(entity);
+      auto sprite = view.get<SpriteRendererComponent>(entity);
+      Renderer2D::DrawQuad(transform.Matrix, sprite.Texture);
+    }
+    
+    Renderer2D::End();
     
     RenderCommand::EndRenderPass();
   }
