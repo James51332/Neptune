@@ -1,5 +1,8 @@
 #pragma once
 
+#include "renderer/Camera.h"
+#include "renderer/Texture.h"
+
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -43,6 +46,15 @@ struct SpriteRendererComponent
 {
   Ref<Texture> Texture;
   Float4 Color = Float4(1.0f);
+  Float32 TilingFactor = 1.0f;
+};
+
+// ----- CameraComponent ------------
+
+struct CameraComponent
+{
+  Camera Camera;
+  bool MainCamera = false;
 };
 
 }

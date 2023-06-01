@@ -20,7 +20,7 @@ public:
   template <typename... T>
   auto GetView() const { return m_Registry.view<T...>(); }
   
-  Entity CreateEntity();
+  Entity CreateEntity(const String& debugName = "");
   void DestroyEntity(Entity entity);
   
 private:

@@ -29,6 +29,8 @@ void EditorLayer::OnInit(const Ref<RenderDevice>& device)
       m_Framebuffers.PushBack(m_RenderDevice->CreateFramebuffer(desc));
   }
   
+  SceneRenderer::OnInit(&m_Scene);
+  
   // Create Camera
   {
     CameraDesc desc;
@@ -50,19 +52,22 @@ void EditorLayer::OnInit(const Ref<RenderDevice>& device)
   
   // ECS Test
   {
-    m_Entity = m_Scene.CreateEntity();
-  	m_Entity.AddComponent<TransformComponent>();
-    
-    auto& tag = m_Entity.AddComponent<TagComponent>();
-    tag.Name = "Panda";
+    m_Entity = m_Scene.CreateEntity("Panda");
     
     auto& sprite = m_Entity.AddComponent<SpriteRendererComponent>();
     sprite.Texture = m_RenderDevice->LoadTexture("resources/panda.png");
+    
+    m_CameraEntity = m_Scene.CreateEntity("Scene Camera");
+    auto& camera = m_CameraEntity.AddComponent<CameraComponent>();
+    camera.Camera = m_CameraController.GetCamera();
+    camera.MainCamera = true;
   }
 }
 
 void EditorLayer::OnTerminate()
 {
+  SceneRenderer::OnTerminate();
+  
   // Delete Panels
   for (Panel* panel : m_Panels)
     delete panel;
@@ -97,17 +102,7 @@ void EditorLayer::OnRender(const Ref<Framebuffer>& framebuffer)
     }
     RenderCommand::BeginRenderPass(scenePass);
     
-    Renderer2D::Begin(m_CameraController.GetCamera());
-    
-    auto view = m_Scene.GetView<TransformComponent, SpriteRendererComponent>();
-    for (auto entity : view)
-    {
-      auto transform = view.get<TransformComponent>(entity);
-      auto sprite = view.get<SpriteRendererComponent>(entity);
-      Renderer2D::DrawQuad(transform.Matrix, sprite.Texture);
-    }
-    
-    Renderer2D::End();
+    SceneRenderer::Render(m_CameraController.GetCamera());
     
     RenderCommand::EndRenderPass();
   }

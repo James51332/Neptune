@@ -49,6 +49,7 @@
 #include "scene/Scene.h"
 #include "scene/Entity.h"
 #include "scene/Components.h"
+#include "scene/SceneRenderer.h"
 
 // ----- Utilities ------------
 #include "utils/Utils.h"

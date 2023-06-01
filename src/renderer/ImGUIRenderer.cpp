@@ -311,7 +311,7 @@ void ImGUIRenderer::OnEvent(Scope<Event> &e)
     ImGuiIO& io = ImGui::GetIO();
     if (event.GetMouseCode() <= 5)
     	io.MouseDown[event.GetMouseCode() - 1] = false;
-    return s_Data.BlockEvents;
+    return false; // s_Data.BlockEvents; // Don't block release events
   });
   
   EventQueue::Dispatch<MouseMovedEvent>(e, [](const MouseMovedEvent& event)

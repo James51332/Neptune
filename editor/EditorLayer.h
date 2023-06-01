@@ -34,6 +34,7 @@ private:
   
   Scene m_Scene;
   Entity m_Entity;
+  Entity m_CameraEntity;
 };
 
 } // namespace Neptune
