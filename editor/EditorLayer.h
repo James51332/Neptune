@@ -1,5 +1,7 @@
 #pragma once
 
+#include "EntityList.h"
+
 #include <Neptune/Neptune.h>
 
 // ----- EditorLayer -----------------
@@ -26,12 +28,9 @@ private:
   DynamicArray<Ref<Framebuffer>> m_Framebuffers;
   Float2 m_ViewportSize = { 800, 600 };
   
-  Ref<Texture> m_Texture; 
-  CameraController m_CameraController;
+  DynamicArray<Panel*> m_Panels;
   
-  Ref<Model> m_Model;
-  Float3 m_ModelPos {0.0f, 0.0f, 0.0f};
-  Float3 m_LightPos {0.0f, 5.0f, 0.0f};
+  CameraController m_CameraController;
   
   Scene m_Scene;
   Entity m_Entity;

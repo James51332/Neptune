@@ -6,6 +6,13 @@
 namespace Neptune
 {
 
+// ----- Tag ------------
+
+struct TagComponent
+{
+  String Name;
+};
+
 // ----- Transform ------------
 
 struct TransformComponent

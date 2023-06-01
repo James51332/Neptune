@@ -43,10 +43,18 @@ void EditorLayer::OnInit(const Ref<RenderDevice>& device)
     m_CameraController = CameraController(cam);
   }
   
+  // Create Panels
+  {
+    m_Panels.PushBack(new EntityList(&m_Scene));
+  }
+  
   // ECS Test
   {
     m_Entity = m_Scene.CreateEntity();
   	m_Entity.AddComponent<TransformComponent>();
+    
+    auto& tag = m_Entity.AddComponent<TagComponent>();
+    tag.Name = "Panda";
     
     auto& sprite = m_Entity.AddComponent<SpriteRendererComponent>();
     sprite.Texture = m_RenderDevice->LoadTexture("resources/panda.png");
@@ -55,11 +63,18 @@ void EditorLayer::OnInit(const Ref<RenderDevice>& device)
 
 void EditorLayer::OnTerminate()
 {
+  // Delete Panels
+  for (Panel* panel : m_Panels)
+    delete panel;
 }
 
 void EditorLayer::OnUpdate()
 {
   m_CameraController.OnUpdate();
+  
+  // Update Panels
+  for (auto* panel : m_Panels)
+    panel->OnUpdate();
   
   // Resize Framebuffer
   {
@@ -116,6 +131,11 @@ void EditorLayer::OnRender(const Ref<Framebuffer>& framebuffer)
 
 void EditorLayer::OnImGuiRender()
 {
+  
+  // Update Panels
+  for (auto* panel : m_Panels)
+    panel->OnImGuiRender();
+  
   // Viewport
   {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0,0});
@@ -131,25 +151,12 @@ void EditorLayer::OnImGuiRender()
     ImGui::End();
     ImGui::PopStyleVar();
   }
-  
-  // Viewport
-  {
-    ImGui::Begin("Settings");
-    ImGui::DragFloat3("Light Pos", &m_LightPos[0]);
-    
-    ImGui::DragFloat3("Model Pos", &m_ModelPos[0]);
-    
-    CameraDesc camDesc = m_CameraController.GetCamera().GetDesc();
-    ImGui::DragFloat3("Camera Pos", &camDesc.Position[0]);
-    m_CameraController.GetCamera().SetDesc(camDesc);
-    
-    ImGui::End();
-  }
 }
 
 void EditorLayer::OnEvent(Scope<Event>& e)
 {
-  
+  for (auto* panel : m_Panels)
+    panel->OnEvent(e);
 }
 
 } // namespace Neptune
