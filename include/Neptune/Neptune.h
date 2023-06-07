@@ -50,6 +50,7 @@
 #include "scene/Entity.h"
 #include "scene/Components.h"
 #include "scene/SceneRenderer.h"
+#include "scene/SceneManager.h"
 
 // ----- Utilities ------------
 #include "utils/Utils.h"

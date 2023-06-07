@@ -48,6 +48,9 @@ void Viewport::OnImGuiRender()
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0,0});
   ImGui::Begin("Viewport");
   
+  if (ImGui::Button("Play/Stop"))
+    SceneManager::ToggleRuntime();
+  
   bool block = !ImGui::IsWindowFocused() && !ImGui::IsWindowHovered();
   ImGUIRenderer::BlockEvents(block);
   
@@ -61,7 +64,8 @@ void Viewport::OnImGuiRender()
 
 void Viewport::OnUpdate()
 {
-  m_CameraController.OnUpdate();
+  if (!SceneManager::GetRuntime())
+  	m_CameraController.OnUpdate();
 }
 
 void Viewport::OnRender()
@@ -88,7 +92,7 @@ void Viewport::OnRender()
     }
     RenderCommand::BeginRenderPass(scenePass);
     
-    SceneRenderer::Render(m_CameraController.GetCamera());
+    SceneRenderer::RenderEditor(m_CameraController.GetCamera());
     
     RenderCommand::EndRenderPass();
   }

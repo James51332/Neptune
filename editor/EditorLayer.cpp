@@ -35,18 +35,32 @@ void EditorLayer::OnInit(const Ref<RenderDevice>& device)
     auto& sprite = m_Entity.AddComponent<SpriteRendererComponent>();
     sprite.Texture = m_RenderDevice->LoadTexture("resources/panda.png");
     
+    struct PandaScript : public NativeScript
+    {
+      virtual void OnUpdate(Entity e) override
+      {
+      }
+    };
+    m_Entity.AddComponent<NativeScriptComponent>(new PandaScript());
+    
     m_CameraEntity = m_Scene.CreateEntity("Scene Camera");
   }
+  
+  SceneManager::OnInit(&m_Scene);
 }
 
 void EditorLayer::OnTerminate()
 {
+  SceneManager::OnTerminate();
+  
   for (auto* panel : m_Panels)
     delete panel;
 }
 
 void EditorLayer::OnUpdate()
 {
+  SceneManager::OnUpdate();
+  
   for (auto* panel : m_Panels)
     panel->OnUpdate();
 }

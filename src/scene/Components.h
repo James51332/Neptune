@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Entity.h"
+
 #include "renderer/Camera.h"
 #include "renderer/Texture.h"
 
@@ -55,6 +57,24 @@ struct CameraComponent
 {
   Camera Camera;
   bool MainCamera = false;
+};
+
+// ----- NativeScriptComponent -------------
+
+// All native scripts must be children of this class
+class NativeScript
+{
+public:
+  virtual ~NativeScript() = default;
+  
+  virtual void OnInit(Entity e) {}
+  virtual void OnUpdate(Entity e) {}
+  virtual void OnTerminate(Entity e) {}
+};
+
+struct NativeScriptComponent
+{
+  NativeScript* Script;
 };
 
 }

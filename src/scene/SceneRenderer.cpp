@@ -2,6 +2,7 @@
 #include "SceneRenderer.h"
 
 #include "Components.h"
+#include "SceneManager.h"
 
 #include "renderer/Renderer2D.h"
 
@@ -25,32 +26,21 @@ void SceneRenderer::ChangeScene(Scene *scene)
   s_Scene = scene;
 }
 
-void SceneRenderer::Render(const Camera& camera)
+void SceneRenderer::RenderEditor(const Camera &camera)
 {
-  // First, we'd normally handle 3d rendering
-  // Next, we'll handle 2d renderering, which is all we're doing for now
-  auto view = s_Scene->GetView<TransformComponent, SpriteRendererComponent>();
-  
-  Renderer2D::Begin(camera);
-  for (auto entity : view)
-  {
-    auto& transform = view.get<TransformComponent>(entity);
-    auto& sprite = view.get<SpriteRendererComponent>(entity);
-    
-    if (sprite.Texture)
-    	Renderer2D::DrawQuad(transform.Matrix, sprite.Texture, sprite.Color, sprite.TilingFactor);
-    else
-      Renderer2D::DrawQuad(transform.Matrix, sprite.Color);
-  }
-  Renderer2D::End();
+  // Determine whether to use editor or scene camera.
+  if (SceneManager::GetRuntime())
+    RenderRuntime();
+  else
+    Render(camera);
 }
 
 void SceneRenderer::RenderRuntime()
 {
-  // Find the active camera within the scene (we'll assume there is only one)
   Camera cam;
+
+  // Find active camera in scene (assuming there is one-editor must enforce)
   auto view = s_Scene->GetView<CameraComponent>();
-  
   for (auto entity : view)
   {
     auto& camera = view.get<CameraComponent>(entity);
@@ -61,8 +51,30 @@ void SceneRenderer::RenderRuntime()
     }
   }
   
-  SceneRenderer::Render(cam);
+  Render(cam);
 }
 
+void SceneRenderer::Render(const Camera& camera)
+{
+  // Now that we've found the camera, handle the rendering.
+  {
+    // First, we'd normally handle 3d rendering
+    // Next, we'll handle 2d renderering, which is all we're doing for now
+    auto view = s_Scene->GetView<TransformComponent, SpriteRendererComponent>();
+    
+    Renderer2D::Begin(camera);
+    for (auto entity : view)
+    {
+      auto& transform = view.get<TransformComponent>(entity);
+      auto& sprite = view.get<SpriteRendererComponent>(entity);
+      
+      if (sprite.Texture)
+        Renderer2D::DrawQuad(transform.Matrix, sprite.Texture, sprite.Color, sprite.TilingFactor);
+      else
+        Renderer2D::DrawQuad(transform.Matrix, sprite.Color);
+    }
+    Renderer2D::End();
+  }
+}
 
 } // namespace Neptune

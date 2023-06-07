@@ -15,11 +15,14 @@ public:
   
   static void ChangeScene(Scene* scene);
   
-  // Use an editor camera
-  static void Render(const Camera& camera);
+  // Use appropriate camera (based on if application is in runtime)
+  static void RenderEditor(const Camera& camera);
   
-  // Finds and use the game camera
+  // Use the runtime camera (for sandbox, which doesn't provide an editor camera)
   static void RenderRuntime();
+
+private:
+  static void Render(const Camera& camera);
   
 private:
   static Scene* s_Scene;

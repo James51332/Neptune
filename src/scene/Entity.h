@@ -37,10 +37,8 @@ struct Entity
   inline const EntityID GetEntityID() const { return m_ID; }
   operator EntityID() const { return m_ID; }
   
+  Entity(EntityID ID, Scene* scene);
 private:
-  friend class Scene;
-  Entity(EntityID name, Scene* scene);
-               
   EntityID m_ID;
   Scene* m_Scene; // We'll assume that these won't outlive the scene.
 };
