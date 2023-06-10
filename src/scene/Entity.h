@@ -14,7 +14,7 @@ using EntityID = entt::entity;
 struct Entity
 {
 	Entity()
-  	: m_ID(), m_Scene(nullptr) {}
+  	: m_ID(entt::null), m_Scene(nullptr) {}
   
   template <typename T, typename... Args>
   T& AddComponent(Args&& ...args)
@@ -34,8 +34,18 @@ struct Entity
     return m_Scene->m_Registry.get<T>(m_ID);
   }
   
+  // TODO: The try_get api probably could save some time fetching a second time.
+  // We could expose to user if there are issues.
+  template <typename T>
+  bool HasComponent()
+  {
+    return m_Scene->m_Registry.try_get<T>(m_ID) != nullptr;
+  }
+  
   inline const EntityID GetEntityID() const { return m_ID; }
   operator EntityID() const { return m_ID; }
+  operator bool() const { return m_Scene; }
+  bool operator==(const Entity other) const { return m_ID == other.m_ID && m_Scene == other.m_Scene; }
   
   Entity(EntityID ID, Scene* scene);
 private:

@@ -1,6 +1,8 @@
 #include "neptunepch.h"
 #include "EntityList.h"
 
+#include "Inspector.h"
+
 #include <imgui/imgui.h>
 
 namespace Neptune
@@ -20,10 +22,13 @@ void EntityList::OnImGuiRender()
   auto view = m_Scene->GetView<TagComponent>();
   for (auto entity : view)
   {
+    Entity e = {entity, m_Scene.Raw()};
+    bool selected = (e == Inspector::GetSelectedEntity());
+    
     auto& tag = view.get<TagComponent>(entity);
-  	if (ImGui::TreeNode(tag.Name.Raw()))
+    if (ImGui::Selectable(tag.Name.Raw(), selected))
     {
-      ImGui::TreePop();
+      Inspector::SetSelectedEntity(e);
     }
   }
   

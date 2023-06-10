@@ -2,6 +2,7 @@
 #include "EditorLayer.h"
 
 #include "panels/EntityList.h"
+#include "panels/Inspector.h"
 
 #include <imgui/imgui.h>
 
@@ -18,7 +19,7 @@ EditorLayer::~EditorLayer()
 }
 
 void EditorLayer::OnInit(const Ref<RenderDevice>& device)
-{
+{  
   m_RenderDevice = device;
   
   // Load Scene (TODO: From serialized)
@@ -31,6 +32,7 @@ void EditorLayer::OnInit(const Ref<RenderDevice>& device)
     
     m_Viewport = new Viewport(m_Scene, m_RenderDevice);
     m_Panels.PushBack(m_Viewport);
+    m_Panels.PushBack(new Inspector(m_Scene));
   }
   
   // ECS Test
