@@ -8,7 +8,7 @@
 namespace Neptune
 {
 
-Viewport::Viewport(Scene* scene, Ref<RenderDevice>& device)
+Viewport::Viewport(Ref<Scene> scene, Ref<RenderDevice>& device)
 	: Panel(scene)
 {
   // Create framebuffers

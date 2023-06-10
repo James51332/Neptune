@@ -6,10 +6,10 @@
 namespace Neptune
 {
 
-Scene* SceneManager::s_Scene = nullptr;
+Ref<Scene> SceneManager::s_Scene = nullptr;
 bool SceneManager::s_Runtime = false;
 
-void SceneManager::OnInit(Scene* scene, bool runtime)
+void SceneManager::OnInit(Ref<Scene> scene, bool runtime)
 {
   NEPTUNE_ASSERT(!s_Scene && scene, "Cannot initialize SceneManager");
   s_Scene = scene;
@@ -22,7 +22,7 @@ void SceneManager::OnTerminate()
   SetRuntime(false);
 }
 
-void SceneManager::ChangeScene(Scene* scene)
+void SceneManager::ChangeScene(Ref<Scene> scene)
 {
   if (s_Runtime) TerminateScripts();
 
@@ -51,7 +51,7 @@ void SceneManager::InitScripts()
   for (auto entt : view)
   {
     auto& script = view.get<NativeScriptComponent>(entt);
-    script.Script->OnInit({entt, s_Scene});
+    script.Script->OnInit({entt, s_Scene.Raw()});
   }
 }
 
@@ -61,7 +61,7 @@ void SceneManager::UpdateScripts(Timestep ts)
   for (auto entt : view)
   {
     auto& script = view.get<NativeScriptComponent>(entt);
-    script.Script->OnUpdate({entt, s_Scene}, ts);
+    script.Script->OnUpdate({entt, s_Scene.Raw()}, ts);
   }
 }
 
@@ -71,7 +71,7 @@ void SceneManager::TerminateScripts()
   for (auto entt : view)
   {
     auto& script = view.get<NativeScriptComponent>(entt);
-    script.Script->OnTerminate({entt, s_Scene});
+    script.Script->OnTerminate({entt, s_Scene.Raw()});
   }
 }
 

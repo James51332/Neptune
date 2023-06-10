@@ -11,10 +11,10 @@ namespace Neptune
 class SceneManager
 {
 public:
-  static void OnInit(Scene* scene, bool runtime = false);
+  static void OnInit(Ref<Scene> scene, bool runtime = false);
   static void OnTerminate();
   
-  static void ChangeScene(Scene* scene);
+  static void ChangeScene(Ref<Scene> scene);
   
   static void OnUpdate(Timestep ts);
   
@@ -28,7 +28,7 @@ private:
   static void TerminateScripts();
   
 private:
-  static Scene* s_Scene;
+  static Ref<Scene> s_Scene;
   static bool s_Runtime;
 };
 

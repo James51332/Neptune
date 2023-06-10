@@ -10,10 +10,10 @@ namespace Neptune
 class SceneRenderer
 {
 public:
-  static void OnInit(Scene* scene);
+  static void OnInit(Ref<Scene> scene);
   static void OnTerminate();
   
-  static void ChangeScene(Scene* scene);
+  static void ChangeScene(Ref<Scene> scene);
   
   // Use appropriate camera (based on if application is in runtime)
   static void RenderEditor(const Camera& camera);
@@ -25,7 +25,7 @@ private:
   static void Render(const Camera& camera);
   
 private:
-  static Scene* s_Scene;
+  static Ref<Scene> s_Scene;
 };
 
 } // namespace Neptune

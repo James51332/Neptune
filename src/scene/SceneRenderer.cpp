@@ -9,9 +9,9 @@
 namespace Neptune
 {
 
-Scene* SceneRenderer::s_Scene = nullptr;
+Ref<Scene> SceneRenderer::s_Scene = nullptr;
 
-void SceneRenderer::OnInit(Scene* scene)
+void SceneRenderer::OnInit(Ref<Scene> scene)
 {
   s_Scene = scene;
 }
@@ -21,7 +21,7 @@ void SceneRenderer::OnTerminate()
   
 }
 
-void SceneRenderer::ChangeScene(Scene *scene)
+void SceneRenderer::ChangeScene(Ref<Scene> scene)
 {
   s_Scene = scene;
 }

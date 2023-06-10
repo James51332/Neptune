@@ -6,7 +6,7 @@
 namespace Neptune
 {
 
-EntityList::EntityList(Scene* scene)
+EntityList::EntityList(Ref<Scene> scene)
 	: Panel(scene)
 {
 }

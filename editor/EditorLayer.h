@@ -29,7 +29,7 @@ private:
   DynamicArray<Panel*> m_Panels;
   Viewport* m_Viewport;
   
-  Scene m_Scene;
+  Ref<Scene> m_Scene;
   Entity m_Entity;
   Entity m_CameraEntity;
 };

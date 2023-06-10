@@ -21,17 +21,21 @@ void EditorLayer::OnInit(const Ref<RenderDevice>& device)
 {
   m_RenderDevice = device;
   
+  // Load Scene (TODO: From serialized)
+  m_Scene = CreateRef<Scene>();
+  SceneManager::OnInit(m_Scene);
+  
   // Create Panels
   {
-    m_Panels.PushBack(new EntityList(&m_Scene));
+    m_Panels.PushBack(new EntityList(m_Scene));
     
-    m_Viewport = new Viewport(&m_Scene, m_RenderDevice);
+    m_Viewport = new Viewport(m_Scene, m_RenderDevice);
     m_Panels.PushBack(m_Viewport);
   }
   
   // ECS Test
   {
-    m_Entity = m_Scene.CreateEntity("Panda");
+    m_Entity = m_Scene->CreateEntity("Panda");
     auto& sprite = m_Entity.AddComponent<SpriteRendererComponent>();
     sprite.Texture = m_RenderDevice->LoadTexture("resources/panda.png");
     
@@ -48,10 +52,8 @@ void EditorLayer::OnInit(const Ref<RenderDevice>& device)
     };
     m_Entity.AddComponent<NativeScriptComponent>(new PandaScript());
     
-    m_CameraEntity = m_Scene.CreateEntity("Scene Camera");
+    m_CameraEntity = m_Scene->CreateEntity("Scene Camera");
   }
-  
-  SceneManager::OnInit(&m_Scene);
 }
 
 void EditorLayer::OnTerminate()

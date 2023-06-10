@@ -8,7 +8,7 @@ namespace Neptune
 class EntityList : public Panel
 {
 public:
-  EntityList(Scene* scene);
+  EntityList(Ref<Scene> scene);
   ~EntityList() = default;
   
   virtual void OnImGuiRender() override;

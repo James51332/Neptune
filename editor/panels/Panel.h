@@ -9,7 +9,7 @@ namespace Neptune
 class Panel
 {
 public:
-  Panel(Scene* scene)
+  Panel(Ref<Scene> scene)
   	: m_Scene(scene) {}
   virtual ~Panel() = default;
   
@@ -21,7 +21,7 @@ public:
   virtual void Hide() { m_Show = false; }
 
 protected:
-  Scene* m_Scene; // It is assumed that panels will be destroyed before the editor
+  Ref<Scene> m_Scene; // It is assumed that panels will be destroyed before the editor
   bool m_Show = true;
 };
 

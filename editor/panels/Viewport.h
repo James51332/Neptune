@@ -10,7 +10,7 @@ namespace Neptune
 class Viewport : public Panel
 {
 public:
-  Viewport(Scene* scene, Ref<RenderDevice>& device);
+  Viewport(Ref<Scene> scene, Ref<RenderDevice>& device);
   ~Viewport();
   
   virtual void OnImGuiRender() override;
