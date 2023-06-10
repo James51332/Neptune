@@ -13,6 +13,9 @@ public:
   virtual ~NativeApplication();
   
   virtual void PollEvents() noexcept = 0;
+  
+  // Poll the time in seconds
+  virtual Float32 PollTime() = 0;
 };
 
 } // namespace Neptune

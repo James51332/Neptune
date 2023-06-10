@@ -16,6 +16,7 @@
 #include "core/KeyEvent.h"
 #include "core/WindowEvent.h"
 #include "core/Input.h"
+#include "core/Timestep.h"
 
 // ----- Renderer ----------
 #include "renderer/Renderer.h"

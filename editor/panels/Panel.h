@@ -13,7 +13,7 @@ public:
   	: m_Scene(scene) {}
   virtual ~Panel() = default;
   
-  virtual void OnUpdate() {}
+  virtual void OnUpdate(Timestep ts) {}
   virtual void OnImGuiRender() {}
   virtual void OnEvent(Scope<Event>& e) {}
   

@@ -37,8 +37,13 @@ void EditorLayer::OnInit(const Ref<RenderDevice>& device)
     
     struct PandaScript : public NativeScript
     {
-      virtual void OnUpdate(Entity e) override
+      virtual void OnUpdate(Entity e, Timestep ts) override
       {
+        if (Input::KeyDown(KeyG))
+      	{
+          auto& t = e.GetComponent<TransformComponent>();
+          t.Position.x += 1.0f * ts;
+        }
       }
     };
     m_Entity.AddComponent<NativeScriptComponent>(new PandaScript());
@@ -57,12 +62,12 @@ void EditorLayer::OnTerminate()
     delete panel;
 }
 
-void EditorLayer::OnUpdate()
+void EditorLayer::OnUpdate(Timestep ts)
 {
-  SceneManager::OnUpdate();
+  SceneManager::OnUpdate(ts);
   
   for (auto* panel : m_Panels)
-    panel->OnUpdate();
+    panel->OnUpdate(ts);
 }
 
 void EditorLayer::OnRender(const Ref<Framebuffer>& framebuffer)

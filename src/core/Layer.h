@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/Event.h"
+#include "core/Timestep.h"
 
 #include "renderer/RenderDevice.h"
 #include "renderer/Swapchain.h"
@@ -17,7 +18,7 @@ public:
   
   virtual void OnInit(const Neptune::Ref<Neptune::RenderDevice>& device) {}
   virtual void OnTerminate() {}
-  virtual void OnUpdate() {}
+  virtual void OnUpdate(Timestep ts) {}
   virtual void OnRender(const Ref<Framebuffer>& framebuffer) {}
   virtual void OnImGuiRender() {}
   virtual void OnEvent(Scope<Event>& e) {}

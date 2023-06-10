@@ -2,6 +2,7 @@
 #include "MacApplication.h"
 
 #import <Cocoa/Cocoa.h>
+#include <time.h>
 
 @interface NeptuneDelegate : NSObject<NSApplicationDelegate>
 @end
@@ -24,6 +25,8 @@ MacApplication::MacApplication()
   
   m_AppDelegate = [[NeptuneDelegate alloc] init];
   [NSApp setDelegate: (NeptuneDelegate*)m_AppDelegate];
+  
+  m_InitialTime = clock_gettime_nsec_np(CLOCK_MONOTONIC) / 1e9;
 }
 
 MacApplication::~MacApplication()
@@ -48,6 +51,11 @@ void MacApplication::PollEvents() noexcept
     else
       [NSApp sendEvent: event];
   }
+}
+
+Float32 MacApplication::PollTime()
+{
+  return static_cast<Float32>(clock_gettime_nsec_np(CLOCK_MONOTONIC) / 1e9 - m_InitialTime);
 }
 
 } // namespace Neptune

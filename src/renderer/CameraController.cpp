@@ -13,14 +13,14 @@ CameraController::CameraController(const Camera& cam)
 {
 }
 
-void CameraController::OnUpdate()
+void CameraController::OnUpdate(Timestep ts)
 {
   CameraDesc desc = m_Camera.GetDesc();
     
-  if (Input::KeyDown(KeyW)) desc.Position += m_Camera.GetForwardDirection() * 0.05f;
-  if (Input::KeyDown(KeyS)) desc.Position += m_Camera.GetForwardDirection() * -0.05f;
-  if (Input::KeyDown(KeyA)) desc.Position += m_Camera.GetRightDirection() * -0.05f;
-  if (Input::KeyDown(KeyD)) desc.Position += m_Camera.GetRightDirection() * 0.05f;
+  if (Input::KeyDown(KeyW)) desc.Position += m_Camera.GetForwardDirection() * 7.0f * (Float32)ts;
+  if (Input::KeyDown(KeyS)) desc.Position += m_Camera.GetForwardDirection() * -7.00f * (Float32)ts;
+  if (Input::KeyDown(KeyA)) desc.Position += m_Camera.GetRightDirection() * -7.0f * (Float32)ts;
+  if (Input::KeyDown(KeyD)) desc.Position += m_Camera.GetRightDirection() * 7.0f * (Float32)ts;
   if (Input::KeyDown(KeySpace)) desc.Position.y += 0.05f;
   if (Input::KeyDown(KeyLeftShift)) desc.Position.y += -0.05f;
   if (Input::MouseDown(MouseLeft)) desc.Rotation.x += Input::GetMouseDeltaX() * 0.1f;

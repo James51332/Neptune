@@ -29,7 +29,7 @@ struct Entity
   }
   
   template <typename T>
-  auto GetComponent()
+  decltype(auto) GetComponent()
   {
     return m_Scene->m_Registry.get<T>(m_ID);
   }

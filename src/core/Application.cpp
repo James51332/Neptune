@@ -61,6 +61,7 @@ void Application::Run()
     layer->OnInit(m_RenderDevice);
   
   m_Running = true;
+  m_LastTime = m_NativeApp->PollTime();
   while (m_Running)
   {
     m_NativeApp->PollEvents();
@@ -92,8 +93,12 @@ void Application::Run()
     
     Renderer::OnUpdate();
     
+    Float32 time = m_NativeApp->PollTime();
+    Timestep ts = time - m_LastTime;
+    m_LastTime = time;
+    
     for (auto& layer : m_LayerStack)
-      layer->OnUpdate();
+      layer->OnUpdate(ts);
     
     for (auto& layer : m_LayerStack)
       layer->OnImGuiRender();

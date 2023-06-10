@@ -14,7 +14,7 @@ public:
   ~Viewport();
   
   virtual void OnImGuiRender() override;
-  virtual void OnUpdate() override;
+  virtual void OnUpdate(Timestep ts) override;
   void OnRender();
   
 private:

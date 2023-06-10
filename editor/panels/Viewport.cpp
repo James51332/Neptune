@@ -62,10 +62,10 @@ void Viewport::OnImGuiRender()
   ImGui::PopStyleVar();
 }
 
-void Viewport::OnUpdate()
+void Viewport::OnUpdate(Timestep ts)
 {
   if (!SceneManager::GetRuntime())
-  	m_CameraController.OnUpdate();
+  	m_CameraController.OnUpdate(ts);
 }
 
 void Viewport::OnRender()

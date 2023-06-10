@@ -68,6 +68,9 @@ void SceneRenderer::Render(const Camera& camera)
       auto& transform = view.get<TransformComponent>(entity);
       auto& sprite = view.get<SpriteRendererComponent>(entity);
       
+      // TODO: We should probably not have to do this each frame.
+      transform.CalculateTransformMatrix();
+      
       if (sprite.Texture)
         Renderer2D::DrawQuad(transform.Matrix, sprite.Texture, sprite.Color, sprite.TilingFactor);
       else

@@ -31,10 +31,10 @@ void SceneManager::ChangeScene(Scene* scene)
   if (s_Runtime) InitScripts();
 }
 
-void SceneManager::OnUpdate()
+void SceneManager::OnUpdate(Timestep ts)
 {
   if (s_Runtime)
-    UpdateScripts();
+    UpdateScripts(ts);
 }
 
 void SceneManager::SetRuntime(bool runtime)
@@ -55,13 +55,13 @@ void SceneManager::InitScripts()
   }
 }
 
-void SceneManager::UpdateScripts()
+void SceneManager::UpdateScripts(Timestep ts)
 {
   auto view = s_Scene->GetView<NativeScriptComponent>();
   for (auto entt : view)
   {
     auto& script = view.get<NativeScriptComponent>(entt);
-    script.Script->OnUpdate({entt, s_Scene});
+    script.Script->OnUpdate({entt, s_Scene}, ts);
   }
 }
 

@@ -2,6 +2,8 @@
 
 #include "Scene.h"
 
+#include "core/Timestep.h"
+
 namespace Neptune
 {
 
@@ -14,7 +16,7 @@ public:
   
   static void ChangeScene(Scene* scene);
   
-  static void OnUpdate();
+  static void OnUpdate(Timestep ts);
   
   static void SetRuntime(bool runtime = true);
   static bool GetRuntime() { return s_Runtime; }
@@ -22,7 +24,7 @@ public:
   
 private:
   static void InitScripts();
-  static void UpdateScripts();
+  static void UpdateScripts(Timestep ts);
   static void TerminateScripts();
   
 private:

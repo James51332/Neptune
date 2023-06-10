@@ -5,6 +5,8 @@
 #include "renderer/Camera.h"
 #include "renderer/Texture.h"
 
+#include "core/Timestep.h"
+
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -68,7 +70,7 @@ public:
   virtual ~NativeScript() = default;
   
   virtual void OnInit(Entity e) {}
-  virtual void OnUpdate(Entity e) {}
+  virtual void OnUpdate(Entity e, Timestep ts) {}
   virtual void OnTerminate(Entity e) {}
 };
 

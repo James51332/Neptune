@@ -18,7 +18,7 @@ public:
   
   virtual void OnInit(const Ref<RenderDevice>& device) override;
   virtual void OnTerminate() override;
-  virtual void OnUpdate() override;
+  virtual void OnUpdate(Timestep ts) override;
   virtual void OnRender(const Ref<Framebuffer>& framebuffer) override;
   virtual void OnImGuiRender() override;
   virtual void OnEvent(Scope<Event>& e) override;

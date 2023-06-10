@@ -7,6 +7,7 @@
 #include "core/NativeApplication.h"
 #include "core/Window.h"
 #include "core/LayerStack.h"
+#include "core/Timestep.h"
 
 #include "renderer/RenderContext.h"
 #include "renderer/Swapchain.h"
@@ -49,6 +50,8 @@ private:
   Ref<RenderContext> m_RenderContext;
   Ref<RenderDevice> m_RenderDevice;
   Ref<Swapchain> m_Swapchain;
+  
+  Timestep m_LastTime;
 };
 
 } // namespace Neptune
