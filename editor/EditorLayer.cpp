@@ -99,8 +99,6 @@ void EditorLayer::OnImGuiRender()
 {
   for (auto* panel : m_Panels)
     panel->OnImGuiRender();
-  
-  ImGui::ShowDemoWindow();
 }
 
 void EditorLayer::OnEvent(Scope<Event>& e)
