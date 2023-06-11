@@ -28,8 +28,6 @@ struct ImGUIRendererData
   Ref<PipelineState> PipelineState;
   
   Ref<Texture> FontTexture;
-  
-  bool BlockEvents;
 };
 
 class ImGUIRenderer
@@ -37,7 +35,6 @@ class ImGUIRenderer
   friend class Renderer;
 public:
   static void Render();
-  static void BlockEvents(bool block = true);
   
 private:
   static void OnInit(const Ref<RenderDevice>& device, Size width, Size height);

@@ -44,7 +44,7 @@ struct Entity
   
   inline const EntityID GetEntityID() const { return m_ID; }
   operator EntityID() const { return m_ID; }
-  operator bool() const { return m_Scene; }
+  operator bool() const { if (!m_Scene) return false; return m_Scene->m_Registry.valid(m_ID); }
   bool operator==(const Entity other) const { return m_ID == other.m_ID && m_Scene == other.m_Scene; }
   
   Entity(EntityID ID, Scene* scene);

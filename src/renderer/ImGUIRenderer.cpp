@@ -176,8 +176,6 @@ void ImGUIRenderer::OnInit(const Ref<RenderDevice>& device, Size width, Size hei
     s_Data.FontTexture = s_Data.Device->CreateTexture(desc);
   }
   
-  s_Data.BlockEvents = false;
-  
   ImGui::NewFrame();
   ImGui::DockSpaceOverViewport();
 }
@@ -276,28 +274,28 @@ void ImGUIRenderer::OnEvent(Scope<Event> &e)
     io.DisplaySize.x = event.GetWidth();
     io.DisplaySize.y = event.GetHeight();
     s_Data.FramebufferSize = {event.GetWidth(), event.GetHeight()};
-    return s_Data.BlockEvents;
+    return false;
   });
   
   EventQueue::Dispatch<KeyTypedEvent>(e, [](const KeyTypedEvent& event)
   {
     ImGuiIO& io = ImGui::GetIO();
     io.AddInputCharacter(event.GetKeyCode());
-    return s_Data.BlockEvents;
+    return false;
   });
   
   EventQueue::Dispatch<KeyPressedEvent>(e, [](const KeyPressedEvent& event)
 	{
     ImGuiIO& io = ImGui::GetIO();
     io.KeysDown[event.GetKeyCode()] = true;
-    return s_Data.BlockEvents;
+    return false;
   });
   
   EventQueue::Dispatch<KeyReleasedEvent>(e, [](const KeyReleasedEvent& event)
                                         {
     ImGuiIO& io = ImGui::GetIO();
     io.KeysDown[event.GetKeyCode()] = false;
-    return s_Data.BlockEvents;
+    return false;
   });
   
   EventQueue::Dispatch<MousePressedEvent>(e, [](const MousePressedEvent& event)
@@ -305,7 +303,7 @@ void ImGUIRenderer::OnEvent(Scope<Event> &e)
     ImGuiIO& io = ImGui::GetIO();
     if (event.GetMouseCode() <= 5)
     	io.MouseDown[event.GetMouseCode() - 1] = true;
-    return s_Data.BlockEvents;
+    return false;
   });
   
   EventQueue::Dispatch<MouseReleasedEvent>(e, [](const MouseReleasedEvent& event)
@@ -313,7 +311,7 @@ void ImGUIRenderer::OnEvent(Scope<Event> &e)
     ImGuiIO& io = ImGui::GetIO();
     if (event.GetMouseCode() <= 5)
     	io.MouseDown[event.GetMouseCode() - 1] = false;
-    return false; // s_Data.BlockEvents; // Don't block release events
+    return false; // false; // Don't block release events
   });
   
   EventQueue::Dispatch<MouseMovedEvent>(e, [](const MouseMovedEvent& event)
@@ -321,7 +319,7 @@ void ImGUIRenderer::OnEvent(Scope<Event> &e)
     ImGuiIO& io = ImGui::GetIO();
     io.MousePos.x = event.GetXPosition();
     io.MousePos.y = event.GetYPosition();
-    return s_Data.BlockEvents;
+    return false;
   });
   
   EventQueue::Dispatch<MouseScrolledEvent>(e, [](const MouseScrolledEvent& event)
@@ -329,13 +327,8 @@ void ImGUIRenderer::OnEvent(Scope<Event> &e)
     ImGuiIO& io = ImGui::GetIO();
     io.MouseWheel += event.GetYScroll();
     io.MouseWheelH += event.GetXScroll();
-    return s_Data.BlockEvents;
+    return false;
   });
-}
-
-void ImGUIRenderer::BlockEvents(bool block)
-{
-  s_Data.BlockEvents = block;
 }
 
 } // namespace Neptune

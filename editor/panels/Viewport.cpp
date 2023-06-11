@@ -51,8 +51,7 @@ void Viewport::OnImGuiRender()
   if (ImGui::Button("Play/Stop"))
     SceneManager::ToggleRuntime();
   
-  bool block = !ImGui::IsWindowFocused() && !ImGui::IsWindowHovered();
-  ImGUIRenderer::BlockEvents(block);
+  m_Focused = ImGui::IsWindowFocused();
   
   ImVec2 viewSize = ImGui::GetContentRegionAvail();
   ImGui::Image((void*)&m_Framebuffers[Renderer::GetFrameNumber()]->GetColorAttachment(), ImVec2(m_ViewportSize.x, m_ViewportSize.y));
@@ -64,7 +63,7 @@ void Viewport::OnImGuiRender()
 
 void Viewport::OnUpdate(Timestep ts)
 {
-  if (!SceneManager::GetRuntime())
+  if (!SceneManager::GetRuntime() && m_Focused)
   	m_CameraController.OnUpdate(ts);
 }
 

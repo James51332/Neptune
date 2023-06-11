@@ -20,6 +20,7 @@ public:
 private:
   DynamicArray<Ref<Framebuffer>> m_Framebuffers;
   Float2 m_ViewportSize {800, 600};
+  bool m_Focused;
   
   CameraController m_CameraController;
 };
