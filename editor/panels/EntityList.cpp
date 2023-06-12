@@ -77,7 +77,7 @@ void EntityList::ShowEntity(Entity entity)
     	Inspector::SetSelectedEntity(entity);
     
     // Rename entity
-    if (selected && Input::KeyPress(KeyEnter))
+    if (selected && Input::KeyPress(KeyEnter) && ImGui::IsWindowFocused())
       BeginRenameEntity(entity);
     
     // Right click on entity
@@ -108,6 +108,7 @@ void EntityList::ShowEntity(Entity entity)
 
 void EntityList::BeginRenameEntity(Entity entity)
 {
+  // Set the rename buffer equal to name
   std::strcpy(m_RenameBuffer, entity.GetComponent<TagComponent>().Name.Raw());
   
   m_RenameEntity = entity;

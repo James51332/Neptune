@@ -107,14 +107,24 @@ void ImGUIRenderer::OnInit(const Ref<RenderDevice>& device, Size width, Size hei
   	io.KeyMap[ImGuiKey_Delete] = KeyCode::KeyDelete;
   }
   
+  // Load Font
+  {
+    ImGuiIO& io = ImGui::GetIO();
+    io.Fonts->AddFontFromFileTTF("resources/font.ttf", 16);
+  }
+  
   // Set Style Variables
   {
+    ImGui::StyleColorsClassic();
+    
     ImGuiStyle& style = ImGui::GetStyle();
     
-    style.ItemSpacing = { 10.0f, 8.0f };
-    style.ItemInnerSpacing = { 6.0f, 6.0f };
-    style.FramePadding = { 4.0f, 4.0f };
-    style.WindowPadding = { 12.0f, 12.0f };
+    style.WindowPadding = { 5.0f, 5.0f };
+    style.FramePadding = { 7.0f, 7.0f };
+    style.ItemSpacing = { 11.0f, 5.0f };
+    style.ItemInnerSpacing = { 5.0f, 5.0f };
+    style.FrameRounding = 3;
+    style.GrabRounding = 3;
   }
   
   // Create Buffers

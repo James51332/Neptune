@@ -58,7 +58,6 @@ struct SpriteRendererComponent
 struct CameraComponent
 {
   Camera Camera;
-  bool MainCamera = false;
 };
 
 // ----- NativeScriptComponent -------------

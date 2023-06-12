@@ -95,7 +95,10 @@ void Viewport::OnRender()
     }
     RenderCommand::BeginRenderPass(scenePass);
     
-    SceneRenderer::RenderEditor(m_CameraController.GetCamera());
+    if (SceneManager::GetRuntime())
+      SceneRenderer::RenderRuntime();
+    else
+      SceneRenderer::Render(m_CameraController.GetCamera());
     
     RenderCommand::EndRenderPass();
   }

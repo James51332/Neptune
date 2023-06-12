@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Scene.h"
+#include "Entity.h"
 
 #include "renderer/Camera.h"
 
@@ -16,18 +17,21 @@ public:
   
   static void ChangeScene(Ref<Scene> scene);
   
-  // Use appropriate camera (based on if application is in runtime)
-  static void RenderEditor(const Camera& camera);
+  // Render the scene using a given camera.
+  static void Render(const Camera& camera);
   
-  // Use the runtime camera (for sandbox, which doesn't provide an editor camera)
+  // Use the runtime camera
   static void RenderRuntime();
 
-private:
-  static void Render(const Camera& camera);
+  // API for managing which camera is used in runtime.
+  static void SetRuntimeCamera(Entity camera) { s_RuntimeCamera = camera; }
+  static Entity GetRuntimeCamera() { return s_RuntimeCamera; }
   
 private:
   static Ref<Scene> s_Scene;
   static Float32 s_AspectRatio;
+  
+  static Entity s_RuntimeCamera;
 };
 
 } // namespace Neptune

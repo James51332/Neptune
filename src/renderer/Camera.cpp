@@ -27,7 +27,7 @@ void Camera::UpdateMatrices()
 
   if (m_Desc.Type == ProjectionType::Perspective)
   {
-  	m_Projection = glm::perspective(m_Desc.FOV, m_Desc.Aspect, m_Desc.Near, m_Desc.Far);
+  	m_Projection = glm::perspective(glm::radians(m_Desc.FOV), m_Desc.Aspect, m_Desc.Near, m_Desc.Far);
   } else if (m_Desc.Type == ProjectionType::Orthographic)
   {
     Float32 height = (2 / m_Desc.Zoom);

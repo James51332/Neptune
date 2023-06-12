@@ -54,7 +54,10 @@ void EditorLayer::OnInit(const Ref<RenderDevice>& device)
     };
     m_Entity.AddComponent<NativeScriptComponent>(new PandaScript());
     
+    // Set this camera as the runtime camera.
     m_CameraEntity = m_Scene->CreateEntity("Scene Camera");
+    m_CameraEntity.AddComponent<CameraComponent>();    
+    SceneRenderer::SetRuntimeCamera(m_CameraEntity);
   }
 }
 

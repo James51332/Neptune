@@ -12,6 +12,8 @@ namespace Neptune
 Ref<Scene> SceneRenderer::s_Scene = nullptr;
 Float32 SceneRenderer::s_AspectRatio = 1.0f;
 
+Entity SceneRenderer::s_RuntimeCamera;
+
 void SceneRenderer::OnInit(Ref<Scene> scene)
 {
   s_Scene = scene;
@@ -32,71 +34,48 @@ void SceneRenderer::ChangeScene(Ref<Scene> scene)
   s_Scene = scene;
 }
 
-void SceneRenderer::RenderEditor(const Camera &camera)
+void SceneRenderer::Render(const Camera& camera)
 {
-  // Determine whether to use editor or scene camera.
-  if (SceneManager::GetRuntime())
-    RenderRuntime();
-  else
-    Render(camera);
+  // First, we'd normally handle 3d rendering
+  // Next, we'll handle 2d renderering, which is all we're doing for now
+  Renderer2D::Begin(camera);
+  
+  auto view = s_Scene->GetView<TransformComponent, SpriteRendererComponent>();
+  for (auto entity : view)
+  {
+    auto& transform = view.get<TransformComponent>(entity);
+    auto& sprite = view.get<SpriteRendererComponent>(entity);
+    
+    // TODO: We should probably not have to do this each frame (but we'll profile it later).
+    transform.CalculateTransformMatrix();
+    
+    if (sprite.Texture)
+      Renderer2D::DrawQuad(transform.Matrix, sprite.Texture, sprite.Color, sprite.TilingFactor);
+    else
+      Renderer2D::DrawQuad(transform.Matrix, sprite.Color);
+  }
+  
+  Renderer2D::End();
 }
 
 void SceneRenderer::RenderRuntime()
 {
-  Camera cam;
-  bool found = false;
-  
-  // Find active camera in scene (assuming there is one-editor must enforce)
-  auto view = s_Scene->GetView<CameraComponent, TransformComponent>();
-  for (auto entity : view)
-  {
-    auto& camera = view.get<CameraComponent>(entity);
-    if (camera.MainCamera)
-    {
-      // Set our camera.
-      cam = camera.Camera;
-      found = true;
-      
-      // Now that we've found our camera, trasnform it to the camera's transform.
-      // TODO: We shouldn't recalculate our matrices when they aren't updated.
-      auto& transform = view.get<TransformComponent>(entity);
-      CameraDesc desc = cam.GetDesc();
-      desc.Position = transform.Position;
-      desc.Rotation = transform.Rotation;
-      desc.Aspect = s_AspectRatio;
-      cam.SetDesc(desc);
-      
-      break;
-    }
-  }
-  
-  NEPTUNE_ASSERT(found, "Cannot render in runtime without a main camera!");
-  Render(cam);
-}
+  NEPTUNE_ASSERT(s_RuntimeCamera, "Cannot render in runtime without a main camera!");
 
-void SceneRenderer::Render(const Camera& camera)
-{
-  {
-    // First, we'd normally handle 3d rendering
-    // Next, we'll handle 2d renderering, which is all we're doing for now
-    auto view = s_Scene->GetView<TransformComponent, SpriteRendererComponent>();
+  // Get the components need to render in runtime
+  auto& camera = s_RuntimeCamera.GetComponent<CameraComponent>();
+  auto& transform = s_RuntimeCamera.GetComponent<TransformComponent>();
+  
+  // Move the camera according to its transform component.
+  // TODO: We shouldn't recalculate our matrices when they aren't updated.
+  CameraDesc desc = camera.Camera.GetDesc();
+  desc.Position = transform.Position;
+  desc.Rotation = transform.Rotation;
+  desc.Aspect = s_AspectRatio;
+  camera.Camera.SetDesc(desc);
     
-    Renderer2D::Begin(camera);
-    for (auto entity : view)
-    {
-      auto& transform = view.get<TransformComponent>(entity);
-      auto& sprite = view.get<SpriteRendererComponent>(entity);
-      
-      // TODO: We should probably not have to do this each frame.
-      transform.CalculateTransformMatrix();
-      
-      if (sprite.Texture)
-        Renderer2D::DrawQuad(transform.Matrix, sprite.Texture, sprite.Color, sprite.TilingFactor);
-      else
-        Renderer2D::DrawQuad(transform.Matrix, sprite.Color);
-    }
-    Renderer2D::End();
-  }
+  // Render using our camera
+  Render(camera.Camera);
 }
 
 } // namespace Neptune
