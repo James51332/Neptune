@@ -24,12 +24,18 @@ void Inspector::OnImGuiRender()
   	if (s_SelectedEntity.HasComponent<TagComponent>())
     {
       ShowTagEditor();
-      ImGui::Separator();
     }
     
     if (s_SelectedEntity.HasComponent<TransformComponent>())
     {
+      ImGui::Separator();
       ShowTransformEditor();
+    }
+    
+    if (s_SelectedEntity.HasComponent<CameraComponent>())
+    {
+      ImGui::Separator();
+      ShowCameraEditor();
     }
   }
   
@@ -57,6 +63,24 @@ void Inspector::ShowTransformEditor()
   ImGui::DragFloat3("Position", &transform.Position[0], 0.05f);
   ImGui::DragFloat3("Rotation", &transform.Rotation[0], 0.05f);
   ImGui::DragFloat3("Scale", &transform.Scale[0], 0.05f);
+}
+
+void Inspector::ShowCameraEditor()
+{
+  //auto& camera = s_SelectedEntity.GetComponent<CameraComponent>();
+  ImGui::Text("Camera Component");
+  
+ // CameraDesc desc = camera.Camera.GetDesc();
+  
+//  if (ImGui::Combo(label, &style_idx, "Orthographic\0Perspective\0"))
+//  {
+//    switch (type)
+//    {
+//      case 0: ImGui::StyleColorsDark(); break;
+//      case 1: ImGui::StyleColorsLight(); break;
+//      case 2: ImGui::StyleColorsClassic(); break;
+//    }
+//  }
 }
 
 

@@ -24,83 +24,104 @@ void EntityList::OnImGuiRender()
   {
     if (ImGui::MenuItem("Create Entity"))
     {
-      Entity e = m_Scene->CreateEntity();
-      m_RenameEntity = e;
-      m_OpenRename = true;
+      Entity entity = m_Scene->CreateEntity();
+      BeginRenameEntity(entity);
     }
     
     ImGui::EndPopup();
   }
   
   // Display all entities
-  auto view = m_Scene->GetView<TagComponent>();
-  for (auto entity : view)
   {
-    Entity e = {entity, m_Scene.Raw()};
-    ShowEntity(e);
+//    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {0,0});
+    
+    auto view = m_Scene->GetView<TagComponent>();
+  	Int32 id = 1;
+  	for (auto entity : view)
+  	{
+  	  Entity e = {entity, m_Scene.Raw()};
+  	
+  	  ImGui::PushID(id++);
+  	  ShowEntity(e);
+  	  ImGui::PopID();
+  	}
+    
+//    ImGui::PopStyleVar();
   }
   
   ImGui::End();
 }
 
-void EntityList::ShowEntity(Entity e)
+void EntityList::ShowEntity(Entity entity)
 {
-  bool rename = (e == m_RenameEntity);
-  bool selected = (e == Inspector::GetSelectedEntity());
-  auto& tag = e.GetComponent<TagComponent>();
+  bool rename = (entity == m_RenameEntity);
+  bool selected = (entity == Inspector::GetSelectedEntity());
+  auto& tag = entity.GetComponent<TagComponent>();
   
   // Show a text field for renaming entities
   if (!rename)
   {
-    // List the entity as a selectable
-  	if (ImGui::Selectable(tag.Name.Raw(), selected))
-  	{
-  	  Inspector::SetSelectedEntity(e);
-  	}
+    // List the entity as a tree node
+    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Leaf
+    												 | ImGuiTreeNodeFlags_FramePadding
+                             | ImGuiTreeNodeFlags_SpanFullWidth
+    												 | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+    
+    if (selected) flags |= ImGuiTreeNodeFlags_Selected;
+    
+    ImGui::AlignTextToFramePadding();
+    ImGui::TreeNodeEx(tag.Name.Raw(), flags);
+    
+    // Select if entity is clicked
+    if (ImGui::IsItemClicked())
+    	Inspector::SetSelectedEntity(entity);
+    
+    // Rename entity
+    if (selected && Input::KeyPress(KeyEnter))
+      BeginRenameEntity(entity);
     
     // Right click on entity
     if (ImGui::BeginPopupContextItem())
     {
-      if (ImGui::MenuItem("Rename Entity"))
-      {
-        m_OpenRename = true;
-        m_RenameEntity = e;
-      }
-      
-      if (ImGui::MenuItem("Delete Entity"))
-      {
-        m_Scene->DestroyEntity(e);
-      }
+      if (ImGui::MenuItem("Rename Entity")) BeginRenameEntity(entity);
+      if (ImGui::MenuItem("Delete Entity")) m_Scene->DestroyEntity(entity);
       
       ImGui::EndPopup();
     }
   } else
   {
-    // If this is first frame editting entity, set input text and focus it.
-    constexpr Size bufferSize = 64;
-    static char buffer[bufferSize];
-    if (m_OpenRename)
+    if (m_RenameNeedFocus)
     {
-      std::strcpy(buffer, tag.Name.Raw());
       ImGui::SetKeyboardFocusHere();
+      m_RenameNeedFocus = false;
     }
     
-    // Draw the text input field
-    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); // Span the entire width of the list
-    ImGui::InputText("##entityname", buffer, bufferSize);
-    bool active = ImGui::IsItemActive();
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+    ImGui::InputText("##entityname", m_RenameBuffer, s_RenameBufferSize, ImGuiInputTextFlags_EnterReturnsTrue);
     
-    // If we're done editting, rename the entity.
-    if (Input::KeyPress(KeyEnter) || (!active && !m_OpenRename))
-    {
-      if (std::strlen(buffer) > 0) // Only rename if the string is not empty
-      	tag.Name = buffer;
-      m_RenameEntity = { entt::null, nullptr };
-    }
-    
-    // If we're already renaming, we don't need this (only true for first frame)
-    m_OpenRename = false;
+    // If we're done editting, rename the entity. ImGui is weird and deactivate immediately
+    // if enter is down. We only want to end if deactivated by focus loss. We'll manually end if enter is pressed.
+    if ((ImGui::IsItemDeactivated() && !Input::KeyDown(KeyEnter)) || Input::KeyPress(KeyEnter))
+      EndRenameEntity();
   }
+}
+
+void EntityList::BeginRenameEntity(Entity entity)
+{
+  std::strcpy(m_RenameBuffer, entity.GetComponent<TagComponent>().Name.Raw());
+  
+  m_RenameEntity = entity;
+  Inspector::SetSelectedEntity(m_RenameEntity);
+  
+  m_RenameNeedFocus = true;
+}
+
+void EntityList::EndRenameEntity()
+{
+  if (std::strlen(m_RenameBuffer) > 0) // Only rename if the string is not empty
+    m_RenameEntity.GetComponent<TagComponent>().Name = m_RenameBuffer;
+  
+  m_RenameEntity = { entt::null, nullptr };
 }
 
 } // namespace Neptune

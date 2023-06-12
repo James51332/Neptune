@@ -107,6 +107,16 @@ void ImGUIRenderer::OnInit(const Ref<RenderDevice>& device, Size width, Size hei
   	io.KeyMap[ImGuiKey_Delete] = KeyCode::KeyDelete;
   }
   
+  // Set Style Variables
+  {
+    ImGuiStyle& style = ImGui::GetStyle();
+    
+    style.ItemSpacing = { 10.0f, 8.0f };
+    style.ItemInnerSpacing = { 6.0f, 6.0f };
+    style.FramePadding = { 4.0f, 4.0f };
+    style.WindowPadding = { 12.0f, 12.0f };
+  }
+  
   // Create Buffers
   {
     BufferDesc vb;

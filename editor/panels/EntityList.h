@@ -16,9 +16,14 @@ public:
 private:
   void ShowEntity(Entity e);
   
+  void BeginRenameEntity(Entity e);
+  void EndRenameEntity();
+  
 private:
-  bool m_OpenRename = false; // Set true the first time the a rename is requested (set text buffer, etc.)
-  Entity m_RenameEntity; // Stores the entity that is renamed
+  constexpr static Size s_RenameBufferSize = 64;
+  char m_RenameBuffer[s_RenameBufferSize];
+  Entity m_RenameEntity;
+  bool m_RenameNeedFocus = true;
 };
 
 } // namespace Neptune

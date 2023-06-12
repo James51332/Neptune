@@ -12,6 +12,7 @@ class SceneRenderer
 public:
   static void OnInit(Ref<Scene> scene);
   static void OnTerminate();
+  static void OnResize(Float32 aspect);
   
   static void ChangeScene(Ref<Scene> scene);
   
@@ -26,6 +27,7 @@ private:
   
 private:
   static Ref<Scene> s_Scene;
+  static Float32 s_AspectRatio;
 };
 
 } // namespace Neptune

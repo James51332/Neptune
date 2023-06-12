@@ -19,6 +19,7 @@ public:
 private:
   void ShowTagEditor();
   void ShowTransformEditor();
+  void ShowCameraEditor();
   
 private:
   static Entity s_SelectedEntity;

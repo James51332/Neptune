@@ -73,11 +73,15 @@ void Viewport::OnRender()
   FramebufferDesc desc = m_Framebuffers[Renderer::GetFrameNumber()]->GetDesc();
   if (desc.Width != m_ViewportSize.x || desc.Height != m_ViewportSize.y)
   {
+    Float32 aspect = m_ViewportSize.x / m_ViewportSize.y;
+    
     m_Framebuffers[Renderer::GetFrameNumber()]->Resize(m_ViewportSize.x, m_ViewportSize.y);
     
     auto desc = m_CameraController.GetCamera().GetDesc();
-    desc.Aspect = m_ViewportSize.x / m_ViewportSize.y;
+    desc.Aspect = aspect;
     m_CameraController.GetCamera().SetDesc(desc);
+    
+    SceneRenderer::OnResize(aspect);
   }
   
   // Scene Pass
