@@ -37,6 +37,12 @@ void Inspector::OnImGuiRender()
       ImGui::Separator();
       ShowCameraEditor();
     }
+    
+    if (s_SelectedEntity.HasComponent<SpriteRendererComponent>())
+    {
+      ImGui::Separator();
+      ShowSpriteEditor();
+    }
   }
   
   ImGui::End();
@@ -126,6 +132,22 @@ void Inspector::ShowCameraEditor()
   // Update the camera if its desc is changed
   if (changed)
     camera.Camera.SetDesc(desc);
+}
+
+void Inspector::ShowSpriteEditor()
+{
+  auto& sprite = s_SelectedEntity.GetComponent<SpriteRendererComponent>();
+  ImGui::Text("Sprite Renderer Component");
+  
+  // TODO: API to add textures via GUI
+  if (sprite.Texture)
+  {
+  	ImGui::Image((void*)&sprite.Texture, {64.0f, 64.0f}, {0, 1}, {1, 0});
+  	ImGui::SameLine(); ImGui::Text("Texture");
+  }
+    
+  ImGui::ColorEdit4("Color", &sprite.Color[0]);
+  ImGui::DragFloat("Tiling Factor", &sprite.TilingFactor);
 }
 
 

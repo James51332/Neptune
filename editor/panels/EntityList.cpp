@@ -52,6 +52,20 @@ void EntityList::OnImGuiRender()
   ImGui::End();
 }
 
+// Shows UI to add component if the entity has the type
+template <typename T>
+static void ShowAddComponent(Entity entity, const char* text)
+{
+  // Don't show if entity has component
+  bool has = entity.HasComponent<T>();
+  if (has) ImGui::BeginDisabled();
+  
+  // TODO: We may need to use factories or other systems in the future to ensure dependent components.
+  if (ImGui::MenuItem(text)) entity.AddComponent<T>();
+  
+  if (has) ImGui::EndDisabled();
+}
+
 void EntityList::ShowEntity(Entity entity)
 {
   bool rename = (entity == m_RenameEntity);
@@ -84,6 +98,15 @@ void EntityList::ShowEntity(Entity entity)
     if (ImGui::BeginPopupContextItem())
     {
       if (ImGui::MenuItem("Rename Entity")) BeginRenameEntity(entity);
+      
+      if (ImGui::BeginMenu("Add Component"))
+      {
+        ShowAddComponent<SpriteRendererComponent>(entity, "Sprite Renderer Component");
+        ShowAddComponent<CameraComponent>(entity, "Camera Component");
+        
+        ImGui::EndMenu();
+      }
+      
       if (ImGui::MenuItem("Delete Entity")) m_Scene->DestroyEntity(entity);
       
       ImGui::EndPopup();
