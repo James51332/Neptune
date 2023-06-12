@@ -52,7 +52,7 @@ vertex FSInput vertexFunc(VSInput in [[stage_in]],
 fragment float4 fragmentFunc(FSInput in [[stage_in]],
                              texture2d<float> texture [[texture(0)]])
 {
-  constexpr sampler linearSampler(coord::normalized, min_filter::linear, mag_filter::linear, mip_filter::linear);
+  constexpr sampler linearSampler(coord::normalized, address::repeat, filter::linear);
   float4 texColor = texture.sample(linearSampler, in.texCoord);
   return in.color * texColor;
 })";
