@@ -22,8 +22,11 @@ void EditorLayer::OnInit(const Ref<RenderDevice>& device)
 {  
   m_RenderDevice = device;
   
-  // Load Scene (TODO: From serialized)
   m_Scene = CreateRef<Scene>();
+  
+  SceneSerializer serializer(m_Scene);
+  serializer.LoadYAML("Scene.neptscene");
+  
   SceneManager::OnInit(m_Scene);
   
   // Create Panels
@@ -33,31 +36,6 @@ void EditorLayer::OnInit(const Ref<RenderDevice>& device)
     m_Viewport = new Viewport(m_Scene, m_RenderDevice);
     m_Panels.PushBack(m_Viewport);
     m_Panels.PushBack(new Inspector(m_Scene));
-  }
-  
-  // ECS Test
-  {
-    m_Entity = m_Scene->CreateEntity("Panda");
-    auto& sprite = m_Entity.AddComponent<SpriteRendererComponent>();
-    sprite.Texture = m_RenderDevice->LoadTexture("resources/panda.png");
-    
-    struct PandaScript : public NativeScript
-    {
-      virtual void OnUpdate(Entity e, Timestep ts) override
-      {
-        if (Input::KeyDown(KeyG))
-      	{
-          auto& t = e.GetComponent<TransformComponent>();
-          t.Position.x += 1.0f * ts;
-        }
-      }
-    };
-    m_Entity.AddComponent<NativeScriptComponent>(new PandaScript());
-    
-    // Set this camera as the runtime camera.
-    m_CameraEntity = m_Scene->CreateEntity("Scene Camera");
-    m_CameraEntity.AddComponent<CameraComponent>();    
-    SceneRenderer::SetRuntimeCamera(m_CameraEntity);
   }
 }
 

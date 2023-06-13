@@ -1,0 +1,23 @@
+Scene: Untitled Scene
+Entities:
+  - Tag Component:
+      Name: Sprite
+    Transform Component:
+      Position: [0.550000012, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Sprite Renderer Component:
+      Color: [0.176354602, 0.510359466, 0.577160478, 1]
+      Tiling Factor: 1
+  - Tag Component:
+      Name: Scene Camera
+    Transform Component:
+      Position: [0, 0, 2.79999995]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Camera Component:
+      Runtime: true
+      Type: Perspective
+      FOV: 65
+      Near: 0.100000001
+      Far: 100

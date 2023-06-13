@@ -14,6 +14,11 @@ Scene::Scene(const String& name)
 {
 }
 
+void Scene::Reset()
+{
+  m_Registry.clear();
+}
+
 Entity Scene::CreateEntity(const String& debugName)
 {
   EntityID ID = m_Registry.create();

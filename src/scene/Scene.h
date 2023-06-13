@@ -15,6 +15,8 @@ class Scene
 public:
   Scene(const String& name = "Untitled Scene");
   
+  void Reset();
+  
   const String& GetName() const { return m_Name; }
   void SetName(const String& name) { m_Name = name; }
   
@@ -25,7 +27,7 @@ public:
   
   template <typename Func>
   auto ForEach(Func func) { m_Registry.each(func); }
-    
+  
   Entity CreateEntity(const String& debugName = "Untitled Entity");
   void DestroyEntity(Entity entity);
   
