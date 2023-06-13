@@ -9,9 +9,9 @@ namespace Neptune
 
 // ----- Scene -----------------
 
-Scene::Scene()
+Scene::Scene(const String& name)
+	: m_Name(name)
 {
-  
 }
 
 Entity Scene::CreateEntity(const String& debugName)

@@ -52,6 +52,7 @@
 #include "scene/Components.h"
 #include "scene/SceneRenderer.h"
 #include "scene/SceneManager.h"
+#include "scene/SceneSerializer.h"
 
 // ----- Utilities ------------
 #include "utils/Utils.h"

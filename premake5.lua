@@ -27,9 +27,11 @@ includeDirs["imgui"] = "thirdparty/imgui"
 includeDirs["OpenFBX"] = "thirdparty/OpenFBX"
 includeDirs["assimp"] = "thirdparty/assimp/assimp/include"
 includeDirs["entt"] = "thirdparty/entt/single_include"
+includeDirs["yaml-cpp"] = "thirdparty/yaml-cpp/yaml-cpp/include"
 
 libDirs = {}
 libDirs["assimp"] = "thirdparty/assimp/lib/%{cfg.shortname}"
+libDirs["yaml-cpp"] = "thirdparty/yaml-cpp/lib/%{cfg.shortname}"
 
 project "Neptune"
 	kind "StaticLib"
@@ -62,7 +64,7 @@ project "Neptune"
   	"pch"
 	}
 	
-	sysincludedirs
+	externalincludedirs
 	{
 		includeDirs["spdlog"],
   	includeDirs["concurrentQueue"],
@@ -71,18 +73,21 @@ project "Neptune"
   	includeDirs["imgui"],
   	includeDirs["OpenFBX"],
   	includeDirs["assimp"],
-   	includeDirs["entt"]
+   	includeDirs["entt"],
+    includeDirs["yaml-cpp"]
 	}
 	
   links
 	{
 		"assimp",
-  	"zlibstatic"
+  	"zlibstatic",
+  	"yaml-cpp"
 	}
 	
 	libdirs
 	{
-		libDirs["assimp"]
+		libDirs["assimp"],
+  	libDirs["yaml-cpp"]
   }
 
 	filter "system:windows"
@@ -134,14 +139,16 @@ project "Editor"
 
 	libdirs
 	{
-		libDirs["assimp"]
+		libDirs["assimp"],
+  	libDirs["yaml-cpp"]
   }
 
 	links
 	{
 		"Neptune",
   	"assimp",
-   	"zlibstatic"
+   	"zlibstatic",
+    "yaml-cpp"
 	}
 	
 	includedirs
@@ -151,7 +158,7 @@ project "Editor"
     "pch"
 	}
 
-	sysincludedirs
+	externalincludedirs
 	{
 		"include",
   	includeDirs["spdlog"],
@@ -161,7 +168,8 @@ project "Editor"
   	includeDirs["imgui"],
   	includeDirs["OpenFBX"],
   	includeDirs["assimp"],
-  	includeDirs["entt"]
+  	includeDirs["entt"],
+   	includeDirs["yaml-cpp"] 
 	}
 	
   filter "system:windows"

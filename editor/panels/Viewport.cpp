@@ -65,6 +65,12 @@ void Viewport::OnUpdate(Timestep ts)
 {
   if (!SceneManager::GetRuntime() && m_Focused)
   	m_CameraController.OnUpdate(ts);
+  
+  if (Input::KeyDown(KeyS))
+  {
+    SceneSerializer s(m_Scene);
+    s.SaveYAML("Scene.neptscene");
+  }
 }
 
 void Viewport::OnRender()
