@@ -3,6 +3,8 @@
 namespace Neptune
 {
 
+// ----- Timestep -----------
+
 class Timestep
 {
 public:

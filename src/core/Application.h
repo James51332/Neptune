@@ -28,6 +28,7 @@ public:
   void PushLayer(Layer* layer) { m_LayerStack.PushLayer(layer); }
   
   static Application* GetSingleton() noexcept;
+  static Float32 PollTime() { return GetSingleton()->m_NativeApp->PollTime(); }
   static void PushEvent(Scope<Event> e) noexcept
   {
     GetSingleton()->GetEventQueue().PushEvent(Move(e));

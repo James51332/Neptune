@@ -17,6 +17,7 @@
 #include "core/WindowEvent.h"
 #include "core/Input.h"
 #include "core/Timestep.h"
+#include "core/Profile.h"
 
 // ----- Renderer ----------
 #include "renderer/Renderer.h"
