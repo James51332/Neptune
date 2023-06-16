@@ -8,10 +8,11 @@
 #include "core/KeyCode.h"
 #include "core/MouseCode.h"
 #include "core/Application.h"
-#include "core/Event.h"
-#include "core/WindowEvent.h"
-#include "core/MouseEvent.h"
-#include "core/KeyEvent.h"
+
+#include "event/Event.h"
+#include "event/WindowEvent.h"
+#include "event/MouseEvent.h"
+#include "event/KeyEvent.h"
 
 #include "metal/MetalRenderDevice.h"
 

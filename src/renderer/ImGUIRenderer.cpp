@@ -3,10 +3,11 @@
 
 #include "core/KeyCode.h"
 #include "core/MouseCode.h"
-#include "core/EventQueue.h"
-#include "core/KeyEvent.h"
-#include "core/MouseEvent.h"
-#include "core/WindowEvent.h"
+
+#include "event/EventQueue.h"
+#include "event/KeyEvent.h"
+#include "event/MouseEvent.h"
+#include "event/WindowEvent.h"
 
 #include <imgui/imgui.h>
 #include <glm/gtc/matrix_transform.hpp>

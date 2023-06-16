@@ -4,10 +4,11 @@
 #define NEPTUNE_ENTRYPOINT
 #include "EntryPoint.h"
 
-#include "core/KeyEvent.h"
-#include "core/MouseEvent.h"
-#include "core/WindowEvent.h"
 #include "core/Input.h"
+
+#include "event/KeyEvent.h"
+#include "event/MouseEvent.h"
+#include "event/WindowEvent.h"
 
 #include "renderer/Renderer.h"
 

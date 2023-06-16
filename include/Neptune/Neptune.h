@@ -10,14 +10,16 @@
 #include "core/Logger.h"
 #include "core/KeyCode.h"
 #include "core/MouseCode.h"
-#include "core/Event.h"
-#include "core/EventQueue.h"
-#include "core/MouseEvent.h"
-#include "core/KeyEvent.h"
-#include "core/WindowEvent.h"
 #include "core/Input.h"
 #include "core/Timestep.h"
 #include "core/Profile.h"
+
+// ----- Events -----------
+#include "event/Event.h"
+#include "event/EventQueue.h"
+#include "event/MouseEvent.h"
+#include "event/KeyEvent.h"
+#include "event/WindowEvent.h"
 
 // ----- Renderer ----------
 #include "renderer/Renderer.h"
@@ -41,11 +43,11 @@
 #include "math/Matrix.h"
 
 // ----- Events ----------
-#include "core/Event.h"
-#include "core/KeyEvent.h"
-#include "core/MouseEvent.h"
-#include "core/WindowEvent.h"
-#include "core/EventQueue.h"
+#include "event/Event.h"
+#include "event/KeyEvent.h"
+#include "event/MouseEvent.h"
+#include "event/WindowEvent.h"
+#include "event/EventQueue.h"
 
 // ----- Scene ------------
 #include "scene/Scene.h"

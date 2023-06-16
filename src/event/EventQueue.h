@@ -1,8 +1,8 @@
 #pragma once
 
-#include "core/Event.h"
-#include "core/KeyEvent.h"
-#include "core/MouseEvent.h"
+#include "event/Event.h"
+#include "event/KeyEvent.h"
+#include "event/MouseEvent.h"
 
 #include "utils/Queue.h"
 #include "utils/SmartPointer.h"

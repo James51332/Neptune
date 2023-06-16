@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/Event.h"
+#include "event/Event.h"
 
 #include "renderer/RenderDevice.h"
 #include "renderer/Buffer.h"

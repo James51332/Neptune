@@ -3,11 +3,12 @@
 #include "utils/SmartPointer.h"
 #include "utils/Utils.h"
 
-#include "core/EventQueue.h"
 #include "core/NativeApplication.h"
 #include "core/Window.h"
 #include "core/LayerStack.h"
 #include "core/Timestep.h"
+
+#include "event/EventQueue.h"
 
 #include "renderer/RenderContext.h"
 #include "renderer/Swapchain.h"

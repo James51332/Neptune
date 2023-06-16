@@ -2,8 +2,9 @@
 
 #include "KeyCode.h"
 #include "MouseCode.h"
-#include "KeyEvent.h"
-#include "MouseEvent.h"
+
+#include "event/KeyEvent.h"
+#include "event/MouseEvent.h"
 
 namespace Neptune
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/Event.h"
+#include "event/Event.h"
 
 namespace Neptune
 {
